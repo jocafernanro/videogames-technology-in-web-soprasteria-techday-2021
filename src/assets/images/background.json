@@ -1,6 +1,6 @@
 {
   "frames": {
-    "Blue.png": {
+    "blue": {
       "frame": {
         "x": 1,
         "y": 1,
@@ -20,7 +20,7 @@
         "h": 64
       }
     },
-    "Brown.png": {
+    "brown": {
       "frame": {
         "x": 67,
         "y": 1,
@@ -40,7 +40,7 @@
         "h": 64
       }
     },
-    "Gray.png": {
+    "gray": {
       "frame": {
         "x": 1,
         "y": 67,
@@ -60,7 +60,7 @@
         "h": 64
       }
     },
-    "Green.png": {
+    "green": {
       "frame": {
         "x": 67,
         "y": 67,
@@ -80,7 +80,7 @@
         "h": 64
       }
     },
-    "Pink.png": {
+    "pink": {
       "frame": {
         "x": 133,
         "y": 1,
@@ -100,7 +100,7 @@
         "h": 64
       }
     },
-    "Purple.png": {
+    "purple": {
       "frame": {
         "x": 133,
         "y": 67,
@@ -120,7 +120,7 @@
         "h": 64
       }
     },
-    "Yellow.png": {
+    "yellow": {
       "frame": {
         "x": 1,
         "y": 133,
