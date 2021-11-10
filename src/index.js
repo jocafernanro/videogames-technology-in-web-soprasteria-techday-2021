@@ -35,7 +35,7 @@ const app = new Application({
   roundPixels: true,
   antialias: true,
   transparent: false,
-  resolution: window.devicePixelRatio || 1,
+  resolution: 1,
 });
 
 const gameContainer = new Container();
@@ -199,10 +199,6 @@ function gameLoop(delta) {
   }
 
   rockHeads.forEach((rockHead) => rockHead.routine());
-
-  rockHeads.forEach((rockHead) => {
-    console.log(player.hasCollidedWith(rockHead));
-  });
 
   if (kb.pressed.ArrowRight) {
     player.direction = 0;
