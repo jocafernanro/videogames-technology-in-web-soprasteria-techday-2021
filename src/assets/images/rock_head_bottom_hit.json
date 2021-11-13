@@ -1,0 +1,47 @@
+{"frames": {
+
+"rock_head_bottom_hit000.png":
+{
+	"frame": {"x":0,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_bottom_hit001.png":
+{
+	"frame": {"x":42,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_bottom_hit002.png":
+{
+	"frame": {"x":84,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_bottom_hit003.png":
+{
+	"frame": {"x":126,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+}},
+"animations": {
+	"rock_head_bottom_hit": ["rock_head_bottom_hit000.png","rock_head_bottom_hit001.png","rock_head_bottom_hit002.png","rock_head_bottom_hit003.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "rock_head_bottom_hit.png",
+	"format": "RGBA8888",
+	"size": {"w":168,"h":42},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:692ec9ec38bc995655a61f5d0ea105c6:b640792734b7973b5ca82a23f1ad59cf:d3a0e64b0d91ad0dbe46fcedfe8f513c$"
+}
+}

@@ -1,8 +1,10 @@
+/* eslint-disable func-names */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-plusplus */
 import "./assets/styles/style.css";
 import * as PIXI from "pixi.js";
 import { CompositeTilemap } from "@pixi/tilemap";
+import { check } from "prettier";
 
 window.PIXI = PIXI; // remove when finished
 
@@ -26,6 +28,8 @@ let backgroundTilemap;
 let collisionsMap;
 let touchingGround = false;
 let healthBar;
+const checkpoints = [];
+const apples = [];
 const rockHeads = [];
 
 const app = new Application({
@@ -78,6 +82,91 @@ function testCollision(worldX, worldY) {
   const mapX = Math.floor(worldX / tileSize);
   const mapY = Math.floor(worldY / tileSize);
   return collisionsMap[mapY][mapX];
+}
+
+// function that check if there is a collision between two objects
+function checkCollision(object1, object2) {
+  // get the position of the object
+  // get the position of the object
+  const object1X = object1.position.x;
+  const object1Y = object1.position.y;
+  const object2X = object2.position.x;
+  const object2Y = object2.position.y;
+
+  // get the size of the objects
+  const object1Width = object1.width - 4;
+  const object1Height = object1.height - 4;
+  const object2Width = object2.width - 4;
+  const object2Height = object2.height - 4;
+
+  // check if the objects are colliding
+  if (
+    object1X < object2X + object2Width &&
+    object1X + object1Width > object2X &&
+    object1Y < object2Y + object2Height &&
+    object1Height + object1Y > object2Y
+  ) {
+    return true;
+  }
+  return false;
+}
+
+// function that check laterally collisions between the player and the objects
+function checkLateralCollision(object) {
+  // get the position of the player
+  const playerX = player.position.x;
+  const playerY = player.position.y;
+
+  // get the size of the player
+  const playerWidth = player.width - 4;
+  const playerHeight = player.height - 4;
+
+  // get the size of the object
+  const objectWidth = object.width - 4;
+  const objectHeight = object.height - 4;
+
+  // get the position of the object
+  const objectX = object.position.x;
+  const objectY = object.position.y;
+
+  // check if the player is in the right or left of the object
+  if (objectX < playerX + playerWidth && objectX + objectWidth > playerX) {
+    // check if the player is in the top or bottom of the object
+    if (objectY < playerY + playerHeight && objectY + objectHeight > playerY) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// function that checks upper collisions between the player and the objects
+function checkCollisionOnTop(object) {
+  // get the position of the player
+  const playerX = player.position.x;
+  const playerY = player.position.y;
+
+  // get the size of the player
+  const playerWidth = player.width - 4;
+  const playerHeight = player.height - 4;
+
+  // get the size of the object
+  const objectWidth = object.width - 4;
+  const objectHeight = object.height - 4;
+
+  // get the position of the object
+  const objectX = object.position.x;
+  const objectY = object.position.y;
+
+  // check if the player is in the top of the object
+  if (
+    objectY < playerY + playerHeight &&
+    objectY + objectHeight > playerY &&
+    objectX < playerX + playerWidth &&
+    objectX + objectWidth > playerX
+  ) {
+    return true;
+  }
+  return false;
 }
 
 function gameLoop(delta) {
@@ -198,8 +287,6 @@ function gameLoop(delta) {
     }
   }
 
-  rockHeads.forEach((rockHead) => rockHead.routine());
-
   if (kb.pressed.ArrowRight) {
     player.direction = 0;
     player.vx = Math.min(8, player.vx + 2);
@@ -215,6 +302,128 @@ function gameLoop(delta) {
     player.vy = -12;
     player.jumped = true;
   }
+
+  rockHeads.forEach((rockHead) => {
+    rockHead.routine();
+    // if (checkCollisionOnTop(rockHead)) {
+    //   player.vy = 0;
+    //   player.position.y = rockHead.position.y - tileSize * 1.5;
+    //   player.position.x = rockHead.position.x + tileSize / 2;
+    // }
+  });
+
+  apples.forEach((apple) => {
+    if (checkCollision(player, apple)) {
+      player.increaseApples += 1;
+      apple.collected();
+    }
+  });
+
+  checkpoints.forEach((checkpoint) => {
+    if (checkpoint.completed) return;
+    if (checkCollision(player, checkpoint)) {
+      checkpoint.achieved();
+    }
+  });
+}
+
+function setCheckpoints() {
+  const checkpointsConfiguration = [
+    {
+      x: 95,
+      y: 240,
+    },
+    {
+      x: 150,
+      y: 16,
+    },
+  ];
+
+  checkpointsConfiguration.forEach((checkpointConfiguration) => {
+    const checkpoint = new PIXI.AnimatedSprite([
+      resources.checkpoint_noflag.texture,
+    ]);
+    checkpoint.achieved = false;
+    checkpoint.position.set(
+      checkpointConfiguration.x,
+      checkpointConfiguration.y
+    );
+    checkpoint.animationSpeed = 0.3;
+    checkpoint.play();
+    checkpoint.achieved = function () {
+      this.completed = true;
+      this.textures = resources.flag_out.spritesheet.animations.flag_out;
+      this.loop = false;
+      this.play();
+      this.onComplete = function () {
+        this.textures = resources.flag_idle.spritesheet.animations.flag_idle;
+        this.loop = true;
+        this.play();
+      };
+    };
+    // checkpoint.scale.set(0.5);
+    checkpoints.push(checkpoint);
+    gameContainer.addChild(checkpoint);
+  });
+}
+
+function setStartPoint() {
+  const startPoint = new PIXI.AnimatedSprite(
+    resources.start.spritesheet.animations.start
+  );
+  startPoint.position.set(485, 240);
+  startPoint.animationSpeed = 0.3;
+  startPoint.play();
+  gameContainer.addChild(startPoint);
+}
+
+function setApples() {
+  const applesConfiguration = [
+    {
+      nOfApples: 8,
+      initialX: 55,
+      initialY: 40,
+      alignment: "vertical",
+    },
+    {
+      nOfApples: 8,
+      initialX: 225,
+      initialY: 289,
+      alignment: "horizontal",
+    },
+  ];
+
+  applesConfiguration.forEach((appleConfiguration) => {
+    for (let i = 0; i < appleConfiguration.nOfApples; i++) {
+      const apple = new PIXI.AnimatedSprite(
+        resources.apple.spritesheet.animations.apple
+      );
+      apple.position.set(
+        appleConfiguration.initialX +
+          (appleConfiguration.alignment === "horizontal" ? i * 32 : 0),
+        appleConfiguration.initialY +
+          (appleConfiguration.alignment === "vertical" ? i * 32 : 0)
+      );
+
+      apple.animationSpeed = 0.3;
+      apple.play();
+
+      apple.collected = function () {
+        apples.splice(apples.indexOf(apple), 1);
+        this.textures =
+          resources.fruit_collected.spritesheet.animations.fruit_collected;
+        this.loop = false;
+        this.play();
+        this.onComplete = function () {
+          gameContainer.removeChild(this);
+          this.destroy();
+        };
+      };
+
+      gameContainer.addChild(apple);
+      apples.push(apple);
+    }
+  });
 }
 
 function setBackground() {
@@ -360,9 +569,12 @@ function setPlayer() {
   player.vx = 0;
   player.vy = 0;
   player.healthPoints = 4;
-  player.position.set(500, 250);
+  player.increaseApples = 0;
+  player.position.set(510, 250);
   player.animationSpeed = 0.3;
-  player.hasCollidedWith = function hasCollidedWith(object) {
+  player.scale.x = -1;
+  player.anchor.x = 1;
+  player.hasCollidedWith = function (object) {
     return (
       this.x < object.position.x + object.width &&
       this.x + this.width > object.position.x &&
@@ -375,7 +587,55 @@ function setPlayer() {
 }
 
 function setRockHeads() {
-  const routine = function routine() {
+  // const rockHead = new Sprite(resources.rock_head_idle.texture);
+  // rockHead.position.set(186, 283);
+  // rockHead.velocity = 4;
+  // rockHead.direction = 1;
+  // rockHead.vx = 4;
+  // rockHead.vy = 4;
+  // rockHead.start = {
+  //   x: 186,
+  //   y: 283,
+  // };
+  // rockHead.end = {
+  //   x: 460,
+  //   y: 283,
+  // };
+  // rockHead.routine = routine;
+  // rockHeads.push(rockHead);
+
+  const rockHead = new PIXI.AnimatedSprite([resources.rock_head_idle.texture]);
+  const rockHeadHit = ({ animation } = {}) => {
+    rockHead.textures = animation;
+    rockHead.play();
+    rockHead.loop = false;
+    rockHead.onComplete = () => {
+      rockHead.textures = [resources.rock_head_idle.texture];
+    };
+  };
+  rockHead.position.set(50, 27);
+  rockHead.velocity = 4;
+  rockHead.direction = 1;
+  rockHead.vx = 4;
+  rockHead.vy = 4;
+  rockHead.start = { x: 50, y: 27 };
+  rockHead.end = { x: 50, y: 283 };
+  rockHead.animationSpeed = 0.3;
+  rockHead.topHit = function () {
+    rockHeadHit({
+      animation:
+        resources.rock_head_top_hit.spritesheet.animations.rock_head_top_hit,
+    });
+  };
+  rockHead.bottomHit = function () {
+    rockHeadHit({
+      animation:
+        resources.rock_head_bottom_hit.spritesheet.animations
+          .rock_head_bottom_hit,
+    });
+  };
+
+  rockHead.routine = function () {
     let progressX;
     let progressY;
     let goal;
@@ -384,10 +644,12 @@ function setRockHeads() {
       progressX = this.end.x - this.position.x;
       progressY = this.end.y - this.position.y;
       goal = { x: this.end.x, y: this.end.y };
+      if (progressY === 0) this.bottomHit();
     } else if (this.direction === -1) {
       progressX = this.position.x - this.start.x;
       progressY = this.position.y - this.start.y;
       goal = { x: this.start.x, y: this.start.y };
+      if (progressY === 0) this.topHit();
     }
 
     if (progressX !== 0)
@@ -407,36 +669,10 @@ function setRockHeads() {
     }
   };
 
-  const rockHead = new Sprite(resources.rock_head_idle.texture);
-  rockHead.position.set(186, 283);
-  rockHead.velocity = 4;
-  rockHead.direction = 1;
-  rockHead.vx = 4;
-  rockHead.vy = 4;
-  rockHead.start = {
-    x: 186,
-    y: 283,
-  };
-  rockHead.end = {
-    x: 460,
-    y: 283,
-  };
-  rockHead.routine = routine;
   rockHeads.push(rockHead);
 
-  const rockHead2 = new Sprite(resources.rock_head_idle.texture);
-  rockHead2.position.set(50, 27);
-  rockHead2.velocity = 4;
-  rockHead2.direction = 1;
-  rockHead2.vx = 4;
-  rockHead2.vy = 4;
-  rockHead2.start = { x: 50, y: 27 };
-  rockHead2.end = { x: 50, y: 283 };
-  rockHead2.routine = routine;
-  rockHeads.push(rockHead2);
-
+  // gameContainer.addChild(rockHead);
   gameContainer.addChild(rockHead);
-  gameContainer.addChild(rockHead2);
 }
 
 function setHealthBar() {
@@ -463,9 +699,12 @@ function setHealthBar() {
 function setup() {
   setBackground();
   setMainScene();
+  setStartPoint();
   setPlayer();
   setRockHeads();
   setHealthBar();
+  setApples();
+  setCheckpoints();
 
   app.ticker.add(gameLoop);
 }
@@ -478,4 +717,14 @@ loader
   .add("player_jump", "./assets/images/player_jump.png")
   .add("player_fall", "./assets/images/player_fall.png")
   .add("rock_head_idle", "./assets/images/rock_head_idle.png")
+  .add("rock_head_blink", "./assets/images/rock_head_blink.json")
+  .add("rock_head_top_hit", "./assets/images/rock_head_top_hit.json")
+  .add("rock_head_bottom_hit", "./assets/images/rock_head_bottom_hit.json")
+  .add("apple", "./assets/images/apple.json")
+  .add("fruit_collected", "./assets/images/fruit_collected.json")
+  .add("start", "./assets/images/start.json")
+  .add("start_idle", "./assets/images/start_idle.png")
+  .add("checkpoint_noflag", "./assets/images/checkpoint_noflag.png")
+  .add("flag_out", "./assets/images/flag_out.json")
+  .add("flag_idle", "./assets/images/flag_idle.json")
   .load(setup);

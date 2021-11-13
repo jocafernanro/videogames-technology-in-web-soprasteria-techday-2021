@@ -1,0 +1,47 @@
+{"frames": {
+
+"rock_head_000.png":
+{
+	"frame": {"x":0,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_001.png":
+{
+	"frame": {"x":42,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_002.png":
+{
+	"frame": {"x":84,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+},
+"rock_head_003.png":
+{
+	"frame": {"x":126,"y":0,"w":42,"h":42},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":42,"h":42},
+	"sourceSize": {"w":42,"h":42}
+}},
+"animations": {
+	"rock_head": ["rock_head_000.png","rock_head_001.png","rock_head_002.png","rock_head_003.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "rock_head_blink.png",
+	"format": "RGBA8888",
+	"size": {"w":168,"h":42},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:45cf4fc44b0cbdc34a06ef27ea82e585:779fa2ece9afbafda1269732b78a3062:7b9257d63de921d2b056981a289c8dd1$"
+}
+}
