@@ -1,0 +1,95 @@
+{"frames": {
+
+"slime_idle_run_000.png":
+{
+	"frame": {"x":0,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_001.png":
+{
+	"frame": {"x":44,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_002.png":
+{
+	"frame": {"x":88,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_003.png":
+{
+	"frame": {"x":132,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_004.png":
+{
+	"frame": {"x":176,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_005.png":
+{
+	"frame": {"x":220,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_006.png":
+{
+	"frame": {"x":264,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_007.png":
+{
+	"frame": {"x":308,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_008.png":
+{
+	"frame": {"x":352,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+},
+"slime_idle_run_009.png":
+{
+	"frame": {"x":396,"y":0,"w":44,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":44,"h":30},
+	"sourceSize": {"w":44,"h":30}
+}},
+"animations": {
+	"slime_idle_run": ["slime_idle_run_000.png","slime_idle_run_001.png","slime_idle_run_002.png","slime_idle_run_003.png","slime_idle_run_004.png","slime_idle_run_005.png","slime_idle_run_006.png","slime_idle_run_007.png","slime_idle_run_008.png","slime_idle_run_009.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "slime_run_idle.png",
+	"format": "RGBA8888",
+	"size": {"w":440,"h":30},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:24209fdcd420bdbdf8b5ce841bb10613:fca5791ced119158f3634adbad31cc15:d63beacd44b352ba933af944645b11f3$"
+}
+}

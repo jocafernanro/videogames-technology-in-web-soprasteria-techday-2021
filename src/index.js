@@ -29,8 +29,16 @@ let collisionsMap;
 let touchingGround = false;
 let healthBar;
 const checkpoints = [];
-const apples = [];
+const fruits = [];
 const rockHeads = [];
+const slimes = [];
+const boxes = [];
+const platforms = [];
+const rabbits = [];
+let onAPlatform = false;
+let objectMark;
+let playerMark;
+let testMark;
 
 const app = new Application({
   backgroundColor: 0x211f30,
@@ -169,8 +177,39 @@ function checkCollisionOnTop(object) {
   return false;
 }
 
+function checkOnTop(object) {
+  // get the position of the player
+  const playerX = player.position.x;
+  const playerY = player.position.y;
+
+  // get the size of the player
+  const playerWidth = player.width;
+  const playerHeight = player.height;
+
+  // get the size of the object
+  const objectWidth = object.width;
+  const objectHeight = object.height;
+
+  // get the position of the object
+  const objectX = object.position.x;
+  const objectY = object.position.y;
+
+  const lookAndFeelCorrection = 16;
+
+  if (
+    objectY + 16 > playerY + playerHeight &&
+    objectY - 16 < playerY + playerHeight &&
+    playerX <= objectX + objectWidth - lookAndFeelCorrection &&
+    playerX + playerWidth >= objectX + lookAndFeelCorrection
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function gameLoop(delta) {
   touchingGround =
+    onAPlatform ||
     testCollision(
       player.position.x + 2,
       player.position.y + tileSize * 2 + 1
@@ -210,37 +249,16 @@ function gameLoop(delta) {
       const testX1 = player.position.x + 2;
       const testX2 = player.position.x + tileSize - 3;
       const testY = player.position.y + 5;
-      if (testCollision(testX1, testY) || testCollision(testX2, testY)) {
+      if (
+        onAPlatform ||
+        testCollision(testX1, testY) ||
+        testCollision(testX2, testY)
+      ) {
         player.vy = 0;
         break;
       }
       player.y -= 1;
     }
-  }
-
-  if (player.jumped) {
-    if (player.vy < 0 && player.textures !== [resources.player_jump.texture]) {
-      player.textures = [resources.player_jump.texture];
-      player.play();
-    } else if (
-      player.vy > 0 &&
-      player.textures !== [resources.player_fall.texture]
-    ) {
-      player.textures = [resources.player_fall.texture];
-      player.play();
-    }
-  } else if (player.vx !== 0) {
-    if (
-      player.textures !== resources.player_run.spritesheet.animations.player_run
-    ) {
-      player.textures = resources.player_run.spritesheet.animations.player_run;
-      player.play();
-    }
-  } else if (
-    player.textures !== resources.player_idle.spritesheet.animations.player_idle
-  ) {
-    player.textures = resources.player_idle.spritesheet.animations.player_idle;
-    player.play();
   }
 
   if (player.vx > 0) {
@@ -289,7 +307,7 @@ function gameLoop(delta) {
 
   if (kb.pressed.ArrowRight) {
     player.direction = 0;
-    player.vx = Math.min(8, player.vx + 2);
+    player.vx = Math.min(6, player.vx + 2);
   }
   if (kb.pressed.ArrowLeft) {
     player.direction = 1;
@@ -299,23 +317,29 @@ function gameLoop(delta) {
     player.jumped = false;
   }
   if (kb.pressed.ArrowUp && touchingGround && !player.jumped) {
-    player.vy = -12;
+    player.vy = -16;
     player.jumped = true;
+    onAPlatform = false;
   }
 
   rockHeads.forEach((rockHead) => {
     rockHead.routine();
-    // if (checkCollisionOnTop(rockHead)) {
-    //   player.vy = 0;
-    //   player.position.y = rockHead.position.y - tileSize * 1.5;
-    //   player.position.x = rockHead.position.x + tileSize / 2;
-    // }
+
+    const playerIsOnTop = checkOnTop(rockHead);
+    if (playerIsOnTop && player.vy >= 0) {
+      console.log("on top");
+      onAPlatform = true;
+      player.position.y = rockHead.position.y - 27;
+      player.vy = 0;
+    } else {
+      onAPlatform = false;
+    }
   });
 
-  apples.forEach((apple) => {
-    if (checkCollision(player, apple)) {
-      player.increaseApples += 1;
-      apple.collected();
+  fruits.forEach((fruit) => {
+    if (checkCollision(player, fruit)) {
+      player.increaseFruits += 1;
+      fruit.collected();
     }
   });
 
@@ -325,6 +349,59 @@ function gameLoop(delta) {
       checkpoint.achieved();
     }
   });
+
+  boxes.forEach((box) => {
+    if (checkCollision(player, box)) {
+      box.hit();
+    }
+  });
+
+  slimes.forEach((slime) => {
+    slime.routine();
+  });
+
+  rabbits.forEach((rabbit) => {
+    rabbit.routine();
+  });
+
+  if (player.jumped) {
+    if (player.vy < 0 && player.textures !== [resources.player_jump.texture]) {
+      player.textures = [resources.player_jump.texture];
+      player.play();
+    } else if (
+      player.vy > 0 &&
+      player.textures !== [resources.player_fall.texture]
+    ) {
+      player.textures = [resources.player_fall.texture];
+      player.play();
+    }
+  } else if (player.vx !== 0) {
+    if (
+      player.textures !== resources.player_run.spritesheet.animations.player_run
+    ) {
+      player.textures = resources.player_run.spritesheet.animations.player_run;
+      player.play();
+    }
+  } else if (
+    player.textures !== resources.player_idle.spritesheet.animations.player_idle
+  ) {
+    player.textures = resources.player_idle.spritesheet.animations.player_idle;
+    player.play();
+  }
+}
+
+function shake(duration) {
+  const start = performance.now();
+  let elapsed = 0;
+  const interval = setInterval(() => {
+    elapsed = performance.now() - start;
+    if (elapsed > duration) {
+      clearInterval(interval);
+      return;
+    }
+    gameContainer.position.x = Math.random() * 2 - 1;
+    gameContainer.position.y = Math.random() * 2 - 1;
+  }, 10);
 }
 
 function setCheckpoints() {
@@ -377,39 +454,49 @@ function setStartPoint() {
   gameContainer.addChild(startPoint);
 }
 
-function setApples() {
-  const applesConfiguration = [
+function setFruits() {
+  const fruitsConfiguration = [
     {
-      nOfApples: 8,
+      nOfFruits: 6,
       initialX: 55,
-      initialY: 40,
+      initialY: 45,
       alignment: "vertical",
+      separation: 45,
+      fruit: "apple",
     },
     {
-      nOfApples: 8,
+      nOfFruits: 5,
       initialX: 225,
       initialY: 289,
       alignment: "horizontal",
+      separation: 50,
+      fruit: "melon",
     },
   ];
 
-  applesConfiguration.forEach((appleConfiguration) => {
-    for (let i = 0; i < appleConfiguration.nOfApples; i++) {
-      const apple = new PIXI.AnimatedSprite(
-        resources.apple.spritesheet.animations.apple
+  fruitsConfiguration.forEach((fruitConfiguration) => {
+    for (let i = 0; i < fruitConfiguration.nOfFruits; i++) {
+      const fruit = new PIXI.AnimatedSprite(
+        resources[fruitConfiguration.fruit].spritesheet.animations[
+          fruitConfiguration.fruit
+        ]
       );
-      apple.position.set(
-        appleConfiguration.initialX +
-          (appleConfiguration.alignment === "horizontal" ? i * 32 : 0),
-        appleConfiguration.initialY +
-          (appleConfiguration.alignment === "vertical" ? i * 32 : 0)
+      fruit.position.set(
+        fruitConfiguration.initialX +
+          (fruitConfiguration.alignment === "horizontal"
+            ? i * fruitConfiguration.separation
+            : 0),
+        fruitConfiguration.initialY +
+          (fruitConfiguration.alignment === "vertical"
+            ? i * fruitConfiguration.separation
+            : 0)
       );
 
-      apple.animationSpeed = 0.3;
-      apple.play();
+      fruit.animationSpeed = 0.3;
+      fruit.play();
 
-      apple.collected = function () {
-        apples.splice(apples.indexOf(apple), 1);
+      fruit.collected = function () {
+        fruits.splice(fruits.indexOf(fruit), 1);
         this.textures =
           resources.fruit_collected.spritesheet.animations.fruit_collected;
         this.loop = false;
@@ -420,8 +507,8 @@ function setApples() {
         };
       };
 
-      gameContainer.addChild(apple);
-      apples.push(apple);
+      gameContainer.addChild(fruit);
+      fruits.push(fruit);
     }
   });
 }
@@ -501,21 +588,21 @@ function setMainScene() {
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1,  5,  6,  6,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, 22, 23, 38, 38, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1,  5,  6,  6,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1,  5,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, 22, 23, 38, 38, 38, 39, -1, -1, -1, -1, -1, -1, -1, 37, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 34, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 60, 61, 61, 61, 61, 61, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,132,133,100, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 25,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7, 60, 61, 61, 61, 61, 61, 61, 61, 62,  5,  6,  6,  7,114, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 79, 80, 80, 80, 80, 80, 80, 80, 81, 22, 23, 23, 24,114, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 39, 93, 94, 94, 94, 94, 94, 94, 94, 95, 22, 23, 23, 24,114, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,125,126,124, -1, -1, -1, -1, -1, -1, -1, -1,124, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23, 23, 24,114, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,138,139, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23, 23, 24,114, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, -1,  5,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23,125,126,114, -1],
-    [ -1, 19, -1, -1, -1, -1, -1,  5, 26,124, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  5,  6,  6,  7, 38,138,139,114, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,129,130,128, -1, -1, -1, -1, -1, -1, -1, -1,128, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23, 23, 24,114, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,141,142, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23, 23, 24,114, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, -1,  5,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, 23,129,130,114, -1],
+    [ -1, 19, -1, -1, -1, -1, -1,  5, 26,124, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  5,  6,  6,  7, 38,141,142,114, -1],
     [ -1,117, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97,118, -1],
     [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -524,14 +611,14 @@ function setMainScene() {
 
   // prettier-ignore
   collisionsMap = [
+    [  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
+    [  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
@@ -569,7 +656,10 @@ function setPlayer() {
   player.vx = 0;
   player.vy = 0;
   player.healthPoints = 4;
-  player.increaseApples = 0;
+  player.fruits = 0;
+  player.increaseFruits = function () {
+    this.fruits++;
+  };
   player.position.set(510, 250);
   player.animationSpeed = 0.3;
   player.scale.x = -1;
@@ -587,23 +677,6 @@ function setPlayer() {
 }
 
 function setRockHeads() {
-  // const rockHead = new Sprite(resources.rock_head_idle.texture);
-  // rockHead.position.set(186, 283);
-  // rockHead.velocity = 4;
-  // rockHead.direction = 1;
-  // rockHead.vx = 4;
-  // rockHead.vy = 4;
-  // rockHead.start = {
-  //   x: 186,
-  //   y: 283,
-  // };
-  // rockHead.end = {
-  //   x: 460,
-  //   y: 283,
-  // };
-  // rockHead.routine = routine;
-  // rockHeads.push(rockHead);
-
   const rockHead = new PIXI.AnimatedSprite([resources.rock_head_idle.texture]);
   const rockHeadHit = ({ animation } = {}) => {
     rockHead.textures = animation;
@@ -613,7 +686,7 @@ function setRockHeads() {
       rockHead.textures = [resources.rock_head_idle.texture];
     };
   };
-  rockHead.position.set(50, 27);
+  rockHead.position.set(50, 27 + 100);
   rockHead.velocity = 4;
   rockHead.direction = 1;
   rockHead.vx = 4;
@@ -621,6 +694,7 @@ function setRockHeads() {
   rockHead.start = { x: 50, y: 27 };
   rockHead.end = { x: 50, y: 283 };
   rockHead.animationSpeed = 0.3;
+  rockHead.play();
   rockHead.topHit = function () {
     rockHeadHit({
       animation:
@@ -633,6 +707,7 @@ function setRockHeads() {
         resources.rock_head_bottom_hit.spritesheet.animations
           .rock_head_bottom_hit,
     });
+    shake(100);
   };
 
   rockHead.routine = function () {
@@ -668,10 +743,13 @@ function setRockHeads() {
       this.direction = -this.direction;
     }
   };
+  setInterval(() => {
+    rockHead.textures =
+      resources.rock_head_blink.spritesheet.animations.rock_head_blink;
+    rockHead.play();
+  }, 1000);
 
   rockHeads.push(rockHead);
-
-  // gameContainer.addChild(rockHead);
   gameContainer.addChild(rockHead);
 }
 
@@ -696,15 +774,223 @@ function setHealthBar() {
   healthBar.setHealthPoints(player.healthPoints);
 }
 
+function setBoxes() {
+  // const boxPiece1 = new PIXI.Sprite(resources.box_break.textures.box_break_0);
+  // const boxPiece2 = new PIXI.Sprite(resources.box_break.textures.box_break_1);
+  // const boxPiece3 = new PIXI.Sprite(resources.box_break.textures.box_break_2);
+  // const boxPiece4 = new PIXI.Sprite(resources.box_break.textures.box_break_3);
+
+  const boxesConfig = [
+    {
+      nHits: 1,
+      x: 150,
+      y: 150,
+    },
+    {
+      nHits: 1,
+      x: 170,
+      y: 150,
+    },
+    {
+      nHits: 1,
+      x: 300,
+      y: 260,
+    },
+    {
+      nHits: 1,
+      x: 320,
+      y: 260,
+    },
+    {
+      nHits: 3,
+      x: 340,
+      y: 260,
+    },
+  ];
+
+  boxesConfig.forEach((boxConfig) => {
+    const box = new PIXI.AnimatedSprite([resources.box_idle.texture]);
+    box.position.set(boxConfig.x, boxConfig.y);
+    box.animationSpeed = 0.3;
+    box.play();
+
+    box.hit = function () {
+      this.nHitsDone = this.nHitsDone || 0;
+      this.textures = resources.box_hit.spritesheet.animations.box_hit;
+      this.play();
+      this.loop = false;
+
+      this.onComplete = () => {
+        this.nHitsDone += 1;
+        if (this.nHitsDone === boxConfig.nHits) {
+          boxes.splice(boxes.indexOf(box), 1);
+          gameContainer.removeChild(this);
+          this.destroy();
+        }
+      };
+    };
+    gameContainer.addChild(box);
+    boxes.push(box);
+  });
+}
+
+function setSlimes() {
+  const slimesConfig = [
+    {
+      velocity: 0.5,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 200, y: 178 },
+      end: { x: 300, y: 178 },
+      animationSpeed: 0.1,
+    },
+    {
+      velocity: 1,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 350, y: 178 },
+      end: { x: 450, y: 178 },
+      animationSpeed: 0.3,
+    },
+  ];
+
+  slimesConfig.forEach((slimeConfig) => {
+    const slime = new PIXI.AnimatedSprite(
+      resources.slime_idle_run.spritesheet.animations.slime_idle_run
+    );
+    slime.velocity = slimeConfig.velocity;
+    slime.direction = slimeConfig.direction;
+    slime.vx = slimeConfig.vx;
+    slime.vy = slimeConfig.vy;
+    slime.start = slimeConfig.start;
+    slime.end = slimeConfig.end;
+    slime.position.set(slimeConfig.start.x, slimeConfig.start.y);
+    slime.animationSpeed = slimeConfig.animationSpeed;
+    slime.play();
+
+    slime.routine = function () {
+      let progressX;
+      let progressY;
+      let goal;
+
+      if (this.direction === 1) {
+        progressX = this.end.x - this.position.x;
+        progressY = this.end.y - this.position.y;
+        goal = { x: this.end.x, y: this.end.y };
+        this.scale.x = -1;
+        this.anchor.x = 1;
+      } else if (this.direction === -1) {
+        progressX = this.position.x - this.start.x;
+        progressY = this.position.y - this.start.y;
+        goal = { x: this.start.x, y: this.start.y };
+        this.scale.x = 1;
+        this.anchor.x = 0;
+      }
+
+      if (progressX !== 0)
+        this.position.x =
+          progressX <= this.velocity
+            ? goal.x
+            : this.position.x + this.velocity * this.direction;
+
+      if (progressY !== 0)
+        this.position.y =
+          progressY <= this.velocity
+            ? goal.y
+            : this.position.y + this.velocity * this.direction;
+
+      if (progressX === 0 && progressY === 0) {
+        this.direction = -this.direction;
+      }
+    };
+    gameContainer.addChild(slime);
+    slimes.push(slime);
+  });
+}
+
+function setRabbits() {
+  const rabbitsConfig = [
+    {
+      velocity: 1,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 400, y: 165 },
+      end: { x: 500, y: 165 },
+    },
+  ];
+
+  rabbitsConfig.forEach((rabbitConfig) => {
+    const rabbit = new PIXI.AnimatedSprite(
+      resources.rabbit_run.spritesheet.animations.rabbit_run
+    );
+    rabbit.position.set(rabbitConfig.start.x, rabbitConfig.start.y);
+    rabbit.animationSpeed = 0.3;
+    rabbit.play();
+    rabbit.velocity = rabbitConfig.velocity;
+    rabbit.direction = rabbitConfig.direction;
+    rabbit.vx = rabbitConfig.vx;
+    rabbit.vy = rabbitConfig.vy;
+    rabbit.start = rabbitConfig.start;
+    rabbit.end = rabbitConfig.end;
+
+    rabbit.routine = function () {
+      let progressX;
+      let progressY;
+      let goal;
+
+      if (this.direction === 1) {
+        progressX = this.end.x - this.position.x;
+        progressY = this.end.y - this.position.y;
+        goal = { x: this.end.x, y: this.end.y };
+        this.scale.x = -1;
+        this.anchor.x = 1;
+      } else if (this.direction === -1) {
+        progressX = this.position.x - this.start.x;
+        progressY = this.position.y - this.start.y;
+        goal = { x: this.start.x, y: this.start.y };
+        this.scale.x = 1;
+        this.anchor.x = 0;
+      }
+
+      if (progressX !== 0)
+        this.position.x =
+          progressX <= this.velocity
+            ? goal.x
+            : this.position.x + this.velocity * this.direction;
+
+      if (progressY !== 0)
+        this.position.y =
+          progressY <= this.velocity
+            ? goal.y
+            : this.position.y + this.velocity * this.direction;
+
+      if (progressX === 0 && progressY === 0) {
+        this.direction = -this.direction;
+      }
+    };
+    gameContainer.addChild(rabbit);
+    rabbits.push(rabbit);
+  });
+}
+
+function setPlatforms() {}
+
 function setup() {
   setBackground();
   setMainScene();
+  setPlatforms();
   setStartPoint();
   setPlayer();
   setRockHeads();
+  setSlimes();
+  // setRabbits();
   setHealthBar();
-  setApples();
+  setFruits();
   setCheckpoints();
+  setBoxes();
 
   app.ticker.add(gameLoop);
 }
@@ -712,6 +998,7 @@ function setup() {
 loader
   .add("background", "./assets/images/background.json")
   .add("terrain", "./assets/images/terrain.json")
+  .add("shadow", "./assets/images/shadow.png")
   .add("player_idle", "./assets/images/player_idle.json")
   .add("player_run", "./assets/images/player_run.json")
   .add("player_jump", "./assets/images/player_jump.png")
@@ -721,10 +1008,20 @@ loader
   .add("rock_head_top_hit", "./assets/images/rock_head_top_hit.json")
   .add("rock_head_bottom_hit", "./assets/images/rock_head_bottom_hit.json")
   .add("apple", "./assets/images/apple.json")
+  .add("banana", "./assets/images/banana.json")
+  .add("orange", "./assets/images/orange.json")
+  .add("melon", "./assets/images/melon.json")
   .add("fruit_collected", "./assets/images/fruit_collected.json")
   .add("start", "./assets/images/start.json")
   .add("start_idle", "./assets/images/start_idle.png")
   .add("checkpoint_noflag", "./assets/images/checkpoint_noflag.png")
   .add("flag_out", "./assets/images/flag_out.json")
   .add("flag_idle", "./assets/images/flag_idle.json")
+  .add("box_idle", "./assets/images/box_idle.png")
+  .add("box_break", "./assets/images/box_break.json")
+  .add("box_hit", "./assets/images/box_hit.json")
+  .add("slime_idle_run", "./assets/images/slime_run_idle.json")
+  .add("rabbit_idle", "./assets/images/rabbit_idle.json")
+  .add("rabbit_hit", "./assets/images/rabbit_hit.json")
+  .add("rabbit_run", "./assets/images/rabbit_run.json")
   .load(setup);
