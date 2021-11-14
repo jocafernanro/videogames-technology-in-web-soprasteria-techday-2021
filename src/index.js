@@ -88,7 +88,7 @@ const backgroundMusic = new Howl({
 
 const fruitSound = new Howl({
   src: ["assets/audio/fruit.wav"],
-  volume: 1,
+  volume: 0.6,
 });
 
 const boxSound = new Howl({
@@ -124,7 +124,12 @@ const unlockBarrierSound = new Howl({
 
 const boxHitReward = new Howl({
   src: ["assets/audio/box_hit_reward.wav"],
-  volume: 1,
+  volume: 0.6,
+});
+
+const checkpointUnlockedSound = new Howl({
+  src: ["assets/audio/checkpoint_unlocked.wav"],
+  volume: 0.8,
 });
 
 class Keyboard {
@@ -571,6 +576,7 @@ function setCheckpoints() {
     checkpoint.animationSpeed = 0.3;
     checkpoint.play();
     checkpoint.achieved = function () {
+      checkpointUnlockedSound.play();
       this.completed = true;
       this.textures = resources.flag_out.spritesheet.animations.flag_out;
       this.loop = false;
