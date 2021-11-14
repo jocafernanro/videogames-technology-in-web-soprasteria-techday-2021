@@ -6,6 +6,8 @@ import * as PIXI from "pixi.js";
 import { CompositeTilemap } from "@pixi/tilemap";
 import { check } from "prettier";
 
+import { Howl, Howler } from "howler";
+
 window.PIXI = PIXI; // remove when finished
 
 const { Application } = PIXI;
@@ -15,7 +17,6 @@ const { resources } = PIXI.Loader.shared;
 const { Graphics } = PIXI;
 // const { TextureCache } = PIXI.utils;
 const { Sprite } = PIXI;
-// const { Text } = PIXI;
 // const { TextStyle } = PIXI;
 
 const resolutionRatio = 1.7777777777777777;
@@ -78,6 +79,22 @@ app.stage.scale.set(2);
 // app.resizeTo = window;
 
 document.querySelector("#main-container").appendChild(app.view);
+
+const backgroundMusic = new Howl({
+  src: ["assets/audio/background.wav"],
+  loop: true,
+  volume: 0.4,
+});
+
+const fruitSound = new Howl({
+  src: ["assets/audio/fruit.wav"],
+  volume: 1,
+});
+
+const boxSound = new Howl({
+  src: ["assets/audio/box.wav"],
+  volume: 1,
+});
 
 class Keyboard {
   constructor() {
@@ -630,6 +647,7 @@ function setFruits() {
       fruit.play();
 
       fruit.collected = function () {
+        fruitSound.play();
         fruits.splice(fruits.indexOf(fruit), 1);
         this.textures =
           resources.fruit_collected.spritesheet.animations.fruit_collected;
@@ -1057,6 +1075,7 @@ function setBoxes() {
     box.addChild(fruitWon);
 
     box.hit = function () {
+      boxSound.play();
       this.nHitsDone = this.nHitsDone || 0;
       this.textures = resources.box_hit.spritesheet.animations.box_hit;
       this.play();
@@ -1548,6 +1567,7 @@ function setUI() {
 }
 
 function setup() {
+  backgroundMusic.play();
   setBackground();
   setMainScene();
   setStartPoint();
@@ -1606,4 +1626,6 @@ loader
   .add("text_white", "./assets/images/text_white.json")
   .add("heart_idle", "./assets/images/heart_idle.json")
   .add("heart_hit", "./assets/images/heart_hit.json")
+  .add("background_music", "./assets/audio/background.wav")
+  .add("fruit_sound", "./assets/audio/fruit.wav")
   .load(setup);
