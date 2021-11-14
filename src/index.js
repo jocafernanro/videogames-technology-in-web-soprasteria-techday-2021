@@ -1258,7 +1258,6 @@ function setup() {
   setPlayer();
   setRockHeads();
   setSlimes();
-  setHealthBar();
   setFruits();
   setCheckpoints();
   setBoxes();
