@@ -92,7 +92,38 @@ const fruitSound = new Howl({
 });
 
 const boxSound = new Howl({
-  src: ["assets/audio/box.wav"],
+  src: ["assets/audio/box_hit.wav"],
+  volume: 1,
+});
+
+const playerHitSound = new Howl({
+  src: ["assets/audio/player_hit.wav"],
+  volume: 1,
+});
+
+const stepsSound = new Howl({
+  src: ["assets/audio/steps.wav"],
+  volume: 0.5,
+  // loop: true,
+});
+
+const keySound = new Howl({
+  src: ["assets/audio/key.wav"],
+  volume: 0.5,
+});
+
+const appearingSound = new Howl({
+  src: ["assets/audio/appearing.wav"],
+  volume: 0.5,
+});
+
+const unlockBarrierSound = new Howl({
+  src: ["assets/audio/unlock_barrier.wav"],
+  volume: 1,
+});
+
+const boxHitReward = new Howl({
+  src: ["assets/audio/box_hit_reward.wav"],
   volume: 1,
 });
 
@@ -376,12 +407,14 @@ function gameLoop(delta) {
       player.x -= 1;
     }
   }
-
+  // stepsSound.stop();
   if (kb.pressed.ArrowRight) {
+    // stepsSound.play();
     player.direction = 0;
     player.vx = Math.min(6, player.vx + 2);
   }
   if (kb.pressed.ArrowLeft) {
+    // stepsSound.play();
     player.direction = 1;
     player.vx = Math.max(-6, player.vx - 2);
   }
@@ -599,6 +632,7 @@ function setEndPoint() {
     );
     barrierItems.forEach((barrierItem, index) => {
       setTimeout(() => {
+        unlockBarrierSound.play();
         barrierContainer.removeChild(barrierItem);
       }, 500 + index * 300);
     });
@@ -622,6 +656,14 @@ function setFruits() {
       alignment: "horizontal",
       separation: 50,
       fruit: "melon",
+    },
+    {
+      nOfFruits: 8,
+      initialX: 245,
+      initialY: 100,
+      alignment: "horizontal",
+      separation: 30,
+      fruit: "orange",
     },
   ];
 
@@ -815,6 +857,7 @@ function setPlayer() {
   player.dead = false;
   player.decreaseHealthPoints = function () {
     if (!this.invulnerable) {
+      playerHitSound.play();
       shake(500);
       player.textures = resources.player_hit.spritesheet.animations.player_hit;
       player.loop = false;
@@ -823,6 +866,7 @@ function setPlayer() {
       this.invulnerable = true;
       topBar.decreaseHealthPoints();
       setTimeout(() => {
+        appearingSound.play();
         this.position.set(lastCheckpoint.position.x, lastCheckpoint.position.y);
         this.invulnerable = false;
         this.alpha = 1;
@@ -1075,6 +1119,7 @@ function setBoxes() {
     box.addChild(fruitWon);
 
     box.hit = function () {
+      shake(100);
       boxSound.play();
       this.nHitsDone = this.nHitsDone || 0;
       this.textures = resources.box_hit.spritesheet.animations.box_hit;
@@ -1084,6 +1129,7 @@ function setBoxes() {
       player.incrementFruits();
 
       this.onComplete = () => {
+        boxHitReward.play();
         fruitWon.alpha = 0;
         this.nHitsDone += 1;
         box.textures = [resources.box_idle.texture];
@@ -1366,6 +1412,7 @@ function setKey() {
   };
 
   key.collected = function () {
+    keySound.play();
     key = undefined;
     this.textures =
       resources.fruit_collected.spritesheet.animations.fruit_collected;
