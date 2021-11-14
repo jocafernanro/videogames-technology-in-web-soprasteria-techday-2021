@@ -34,6 +34,7 @@ const rockHeads = [];
 const slimes = [];
 const boxes = [];
 const rabbits = [];
+let topBar;
 let key;
 let platform;
 let endPoint;
@@ -41,6 +42,7 @@ let onAPlatform = false;
 let objectMark;
 let playerMark;
 let testMark;
+let lastCheckpoint;
 
 const app = new Application({
   backgroundColor: 0x211f30,
@@ -118,14 +120,27 @@ function hitBox(worldX, worldY) {
     }
   }
 
-  console.log(hit);
   return hit;
 }
 
-function textToSprite(letter, type = "white") {
-  return new PIXI.Sprite(
-    resources[`text_${type}`].textures[`${letter}_${type}`]
-  );
+function textToSprite({
+  text,
+  type = "white",
+  container,
+  scale = 1,
+  separation,
+  x = 0,
+  y = 0,
+} = {}) {
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const sprite = new Sprite(
+      resources[`text_${type}`].textures[`${char}_${type}`]
+    );
+    sprite.position.set(x + i * separation, y);
+    sprite.scale.set(scale);
+    container.addChild(sprite);
+  }
 }
 
 // function that check if there is a collision between two objects
@@ -244,6 +259,8 @@ function checkOnTop(object) {
 }
 
 function gameLoop(delta) {
+  if (player.dead) return;
+
   touchingGround =
     onAPlatform ||
     testCollision(
@@ -365,7 +382,6 @@ function gameLoop(delta) {
 
     const playerIsOnTopRockHead = checkOnTop(rockHead);
     if (playerIsOnTopRockHead && player.vy >= 0) {
-      console.log("on top");
       onAPlatform = true;
       player.position.y = rockHead.position.y - 27;
       player.vy = 0;
@@ -376,7 +392,7 @@ function gameLoop(delta) {
 
   fruits.forEach((fruit) => {
     if (checkCollision(player, fruit)) {
-      player.increaseFruits += 1;
+      player.incrementFruits();
       fruit.collected();
     }
   });
@@ -394,6 +410,10 @@ function gameLoop(delta) {
 
   slimes.forEach((slime) => {
     slime.routine();
+
+    if (checkCollision(player, slime)) {
+      player.decreaseHealthPoints();
+    }
   });
 
   rabbits.forEach((rabbit) => {
@@ -419,7 +439,7 @@ function gameLoop(delta) {
     player.vy = 0;
   }
 
-  if (!player.appearing) {
+  if (!player.appearing && !player.invulnerable) {
     if (player.jumped) {
       if (
         player.vy < 0 &&
@@ -456,11 +476,15 @@ function gameLoop(delta) {
 
 function shake(duration) {
   const start = performance.now();
+  const originalX = gameContainer.position.x;
+  const originalY = gameContainer.position.y;
   let elapsed = 0;
   const interval = setInterval(() => {
     elapsed = performance.now() - start;
     if (elapsed > duration) {
       clearInterval(interval);
+      gameContainer.position.x = originalX;
+      gameContainer.position.y = originalY;
       return;
     }
     gameContainer.position.x = Math.random() * 2 - 1;
@@ -496,6 +520,7 @@ function setCheckpoints() {
       this.textures = resources.flag_out.spritesheet.animations.flag_out;
       this.loop = false;
       this.play();
+      lastCheckpoint = this;
       this.onComplete = function () {
         this.textures = resources.flag_idle.spritesheet.animations.flag_idle;
         this.loop = true;
@@ -732,8 +757,37 @@ function setPlayer() {
   player.healthPoints = 4;
   player.fruits = 0;
   player.hasKey = false;
-  player.increaseFruits = function () {
+  player.invulnerable = false;
+  player.dead = false;
+  player.decreaseHealthPoints = function () {
+    if (!this.invulnerable) {
+      shake(500);
+      player.textures = resources.player_hit.spritesheet.animations.player_hit;
+      player.loop = false;
+      player.play();
+      this.healthPoints--;
+      this.invulnerable = true;
+      topBar.decreaseHealthPoints();
+      setTimeout(() => {
+        this.position.set(lastCheckpoint.position.x, lastCheckpoint.position.y);
+        this.invulnerable = false;
+        this.alpha = 1;
+      }, 3000);
+    }
+
+    if (this.healthPoints === 0) {
+      this.dead = true;
+    }
+  };
+  player.incrementHealthPoints = function () {
+    if (this.healthPoints < 4) {
+      this.healthPoints++;
+      topBar.incrementHealthPoints();
+    }
+  };
+  player.incrementFruits = function () {
     this.fruits++;
+    topBar.setFruits(player.fruits);
   };
   player.position.set(480, 220);
   player.animationSpeed = 0.2;
@@ -749,10 +803,11 @@ function setPlayer() {
   };
   player.play();
   player.onComplete = function () {
+    if (this.appearing) this.position.set(510, 250);
+    if (this.invulnerable) this.alpha = 0;
     this.appearing = false;
     this.loop = true;
-    player.position.set(510, 250);
-    player.animationSpeed = 0.3;
+    this.animationSpeed = 0.3;
   };
   gameContainer.addChild(player);
 }
@@ -772,7 +827,7 @@ function setRockHeads() {
   rockHead.direction = 1;
   rockHead.vx = 4;
   rockHead.vy = 4;
-  rockHead.start = { x: 50, y: 27 };
+  rockHead.start = { x: 50, y: 60 };
   rockHead.end = { x: 50, y: 283 };
   rockHead.animationSpeed = 0.3;
   rockHead.play();
@@ -805,7 +860,6 @@ function setRockHeads() {
       progressX = this.position.x - this.start.x;
       progressY = this.position.y - this.start.y;
       goal = { x: this.start.x, y: this.start.y };
-      if (progressY === 0) this.topHit();
     }
 
     if (progressX !== 0)
@@ -1216,7 +1270,7 @@ function setHealthBar() {
   healthBar.incrementHealthPoints = function incrementHealthPoints() {
     this.healthPoints += 1;
   };
-  healthBar.decrementHealthPoints = function decrementHealthPoints() {
+  healthBar.decreaseHealthPoints = function decrementHealthPoints() {
     this.healthPoints -= 1;
   };
   gameContainer.addChild(healthBar);
@@ -1224,29 +1278,114 @@ function setHealthBar() {
 }
 
 function setUI() {
-  const topBar = new PIXI.Container();
-  topBar.position.set(23, 10);
-  topBar.scale.set(1, 1);
+  topBar = new PIXI.Container();
+  topBar.position.set(24, 5);
+  topBar.height = 15;
+  topBar.hearts = [];
   UIContainer.addChild(topBar);
 
-  const healthText = "health:";
-  for (let i = 0; i < healthText.length; i++) {
-    const letter = healthText[i];
-    const textSprite = textToSprite(letter, "white");
-    textSprite.scale.set(0.5);
-    textSprite.position.set(0 + 4 * i, 3);
-    topBar.addChild(textSprite);
-  }
+  const healthIndicator = new PIXI.Container();
+  healthIndicator.position.set(0, 0);
+  topBar.addChild(healthIndicator);
+
+  const healthTextContainer = new PIXI.Container();
+  healthIndicator.addChild(healthTextContainer);
+  textToSprite({
+    text: "health:",
+    container: healthTextContainer,
+    type: "white",
+    scale: 0.5,
+    separation: 4,
+    y: 5,
+  });
+
   for (let i = 0; i < player.healthPoints; i++) {
     const heart = new PIXI.AnimatedSprite(
       resources.heart_idle.spritesheet.animations.heart_idle
     );
-    heart.animationSpeed = 0.1;
-    heart.position.set(30 + i * 10, 0);
+    heart.animationSpeed = 0.15;
+    heart.position.set(30 + i * 10, 2);
     heart.scale.set(0.8);
     heart.play();
-    topBar.addChild(heart);
+    healthIndicator.addChild(heart);
+    topBar.hearts.push(heart);
   }
+
+  const fruitsIndicator = new PIXI.Container();
+  topBar.addChild(fruitsIndicator);
+
+  const fruitsTextContainer = new PIXI.Container();
+  fruitsTextContainer.position.set(healthIndicator.width + 10, 5);
+  fruitsIndicator.addChild(fruitsTextContainer);
+  textToSprite({
+    text: "fruits:",
+    container: fruitsTextContainer,
+    type: "white",
+    scale: 0.5,
+    separation: 4,
+  });
+
+  const fruitSprite = new PIXI.AnimatedSprite(
+    resources.banana.spritesheet.animations.banana
+  );
+  fruitSprite.animationSpeed = 0.15;
+  fruitSprite.position.set(115, -3);
+  fruitSprite.scale.set(0.65);
+  fruitSprite.play();
+  fruitsIndicator.addChild(fruitSprite);
+
+  const fruitsCounterTextContainer = new PIXI.Container();
+  fruitsCounterTextContainer.position.set(
+    fruitSprite.position.x + fruitSprite.width,
+    4
+  );
+  fruitsIndicator.addChild(fruitsCounterTextContainer);
+  textToSprite({
+    text: "0",
+    container: fruitsCounterTextContainer,
+    type: "white",
+    scale: 0.7,
+    separation: 4,
+  });
+
+  topBar.decreaseHealthPoints = function () {
+    const heart = this.hearts[player.healthPoints];
+    if (heart.textures === resources.heart_hit.spritesheet.animations.heart_hit)
+      return;
+
+    heart.textures = resources.heart_hit.spritesheet.animations.heart_hit;
+    heart.loop = false;
+    heart.play();
+  };
+
+  topBar.increaseHealthPoints = function () {
+    const heart = this.hearts[player.healthPoints];
+    if (
+      heart.textures === resources.heart_idle.spritesheet.animations.heart_idle
+    )
+      return;
+    heart.textures = resources.heart_idle.spritesheet.animations.heart_idle;
+    heart.loop = true;
+    heart.play();
+  };
+
+  topBar.setFruits = () => {
+    const textSprites = fruitsCounterTextContainer.children.map(
+      (child) => child
+    );
+
+    textSprites.forEach((text) => {
+      fruitsCounterTextContainer.removeChild(text);
+    });
+
+    textToSprite({
+      text: `${player.fruits}`,
+      container: fruitsCounterTextContainer,
+      type: "white",
+      scale: 0.7,
+      separation: 4,
+    });
+  };
 }
 
 function setup() {
@@ -1255,13 +1394,13 @@ function setup() {
   setStartPoint();
   setEndPoint();
   setPlatform();
-  setPlayer();
   setRockHeads();
   setSlimes();
   setFruits();
   setCheckpoints();
   setBoxes();
   setKey();
+  setPlayer();
   setUI();
 
   app.ticker.add(gameLoop);
@@ -1277,6 +1416,7 @@ loader
   .add("player_fall", "./assets/images/player_fall.png")
   .add("player_appearing", "./assets/images/player_appearing.json")
   .add("player_disappearing", "./assets/images/player_desappearing.json")
+  .add("player_hit", "./assets/images/player_hit.json")
   .add("rock_head_idle", "./assets/images/rock_head_idle.png")
   .add("rock_head_blink", "./assets/images/rock_head_blink.json")
   .add("rock_head_top_hit", "./assets/images/rock_head_top_hit.json")
