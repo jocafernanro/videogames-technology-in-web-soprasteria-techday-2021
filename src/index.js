@@ -372,7 +372,7 @@ function gameLoop(delta) {
     player.jumped = false;
   }
   if (kb.pressed.ArrowUp && touchingGround && !player.jumped) {
-    player.vy = -16;
+    player.vy = -14;
     player.jumped = true;
     onAPlatform = false;
   }
@@ -385,8 +385,6 @@ function gameLoop(delta) {
       onAPlatform = true;
       player.position.y = rockHead.position.y - 27;
       player.vy = 0;
-    } else {
-      onAPlatform = false;
     }
   });
 
@@ -406,6 +404,14 @@ function gameLoop(delta) {
 
   boxes.forEach((box) => {
     box.routine();
+
+    const playerIsOnTopBox = checkOnTop(box);
+    if (playerIsOnTopBox && player.vy >= 0) {
+      console.log("player is on top of box");
+      onAPlatform = true;
+      player.position.y = box.position.y - 27;
+      player.vy = 0;
+    }
   });
 
   slimes.forEach((slime) => {
@@ -423,7 +429,7 @@ function gameLoop(delta) {
   if (key) {
     key.float();
     if (checkCollision(player, key)) {
-      key.hasKey = true;
+      player.hasKey = true;
       key.collected();
     }
   }
@@ -431,7 +437,6 @@ function gameLoop(delta) {
   const playerIsOnTopPlatform = checkOnTop(platform);
   platform.routine();
   if (playerIsOnTopPlatform && player.vy >= 0) {
-    console.log("on top");
     onAPlatform = true;
     player.position.y = platform.position.y - 32;
     if (!kb.pressed.ArrowRight && !kb.pressed.ArrowLeft)
@@ -527,7 +532,7 @@ function setCheckpoints() {
         this.play();
       };
     };
-    // checkpoint.scale.set(0.5);
+
     checkpoints.push(checkpoint);
     gameContainer.addChild(checkpoint);
   });
@@ -550,6 +555,37 @@ function setEndPoint() {
   endPoint.scale.set(0.7);
   endPoint.play();
   gameContainer.addChild(endPoint);
+
+  const barrierContainer = new PIXI.Container();
+  barrierContainer.position.set(528, 32);
+  barrierContainer.scale.set(0.6);
+  gameContainer.addChild(barrierContainer);
+
+  const barrier = new PIXI.Sprite(resources.terrain.textures.metal_brick_v_1);
+  barrierContainer.addChild(barrier);
+
+  const barrier2 = new PIXI.Sprite(resources.terrain.textures.metal_brick_v_2);
+  barrier2.position.set(0, barrier.y + barrier.height, 32);
+  barrierContainer.addChild(barrier2);
+
+  const barrier3 = new PIXI.Sprite(resources.terrain.textures.metal_brick_v_2);
+  barrier3.position.set(0, barrier2.y + barrier2.height, 32);
+  barrierContainer.addChild(barrier3);
+
+  const barrier4 = new PIXI.Sprite(resources.terrain.textures.metal_brick_v_3);
+  barrier4.position.set(0, barrier3.y + barrier3.height, 32);
+  barrierContainer.addChild(barrier4);
+
+  endPoint.unlock = () => {
+    const barrierItems = barrierContainer.children.map(
+      (barrierItem) => barrierItem
+    );
+    barrierItems.forEach((barrierItem, index) => {
+      setTimeout(() => {
+        barrierContainer.removeChild(barrierItem);
+      }, 500 + index * 300);
+    });
+  };
 }
 
 function setFruits() {
@@ -889,11 +925,6 @@ function setRockHeads() {
 }
 
 function setBoxes() {
-  // const boxPiece1 = new PIXI.Sprite(resources.box_break.textures.box_break_0);
-  // const boxPiece2 = new PIXI.Sprite(resources.box_break.textures.box_break_1);
-  // const boxPiece3 = new PIXI.Sprite(resources.box_break.textures.box_break_2);
-  // const boxPiece4 = new PIXI.Sprite(resources.box_break.textures.box_break_3);
-
   const boxesConfig = [
     {
       nHits: 1,
@@ -914,7 +945,34 @@ function setBoxes() {
       end: { x: 170, y: 151 },
     },
     {
+      nHits: 4,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 250, y: 149 },
+      end: { x: 250, y: 151 },
+    },
+    {
       nHits: 1,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 270, y: 149 },
+      end: { x: 270, y: 151 },
+    },
+    {
+      nHits: 1,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 290, y: 149 },
+      end: { x: 290, y: 151 },
+    },
+    {
+      nHits: 6,
       velocity: 0.05,
       direction: 1,
       vx: 4,
@@ -932,13 +990,49 @@ function setBoxes() {
       end: { x: 320, y: 261 },
     },
     {
-      nHits: 3,
+      nHits: 1,
       velocity: 0.05,
       direction: 1,
       vx: 4,
       vy: 4,
       start: { x: 340, y: 259 },
       end: { x: 340, y: 261 },
+    },
+    {
+      nHits: 1,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 400, y: 149 },
+      end: { x: 400, y: 151 },
+    },
+    {
+      nHits: 1,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 420, y: 149 },
+      end: { x: 420, y: 151 },
+    },
+    {
+      nHits: 3,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 440, y: 149 },
+      end: { x: 440, y: 151 },
+    },
+    {
+      nHits: 3,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 460, y: 149 },
+      end: { x: 460, y: 151 },
     },
   ];
 
@@ -954,13 +1048,24 @@ function setBoxes() {
     box.animationSpeed = 0.3;
     box.play();
 
+    const fruitWon = new PIXI.AnimatedSprite(
+      resources.banana.spritesheet.animations.banana
+    );
+    fruitWon.play();
+    fruitWon.position.set(-3, -3);
+    fruitWon.alpha = 0;
+    box.addChild(fruitWon);
+
     box.hit = function () {
       this.nHitsDone = this.nHitsDone || 0;
       this.textures = resources.box_hit.spritesheet.animations.box_hit;
       this.play();
       this.loop = false;
+      fruitWon.alpha = 1;
+      player.incrementFruits();
 
       this.onComplete = () => {
+        fruitWon.alpha = 0;
         this.nHitsDone += 1;
         box.textures = [resources.box_idle.texture];
         if (this.nHitsDone === boxConfig.nHits) {
@@ -1003,7 +1108,6 @@ function setBoxes() {
       }
     };
 
-    // box.routine = function () {};
     gameContainer.addChild(box);
     boxes.push(box);
   });
@@ -1247,8 +1351,10 @@ function setKey() {
     this.textures =
       resources.fruit_collected.spritesheet.animations.fruit_collected;
     this.loop = false;
+    topBar.setKeys();
     this.play();
     this.onComplete = function () {
+      endPoint.unlock();
       gameContainer.removeChild(this);
       this.destroy();
     };
@@ -1348,6 +1454,43 @@ function setUI() {
     separation: 4,
   });
 
+  const keysIndicator = new PIXI.Container();
+  keysIndicator.position.set(
+    fruitsCounterTextContainer.x + fruitsCounterTextContainer.width + 10,
+    0
+  );
+  topBar.addChild(keysIndicator);
+
+  const keysText = new PIXI.Container();
+  keysText.position.set(0, 5);
+  keysIndicator.addChild(keysText);
+  textToSprite({
+    text: "keys:",
+    container: keysText,
+    type: "white",
+    scale: 0.5,
+    separation: 4,
+  });
+
+  const keySprite = new PIXI.Sprite(resources.key.texture);
+  keySprite.position.set(keysText.y + keysText.width, 2);
+  keySprite.scale.set(0.65);
+  keysIndicator.addChild(keySprite);
+
+  const keysCounterTextContainer = new PIXI.Container();
+  keysCounterTextContainer.position.set(
+    keySprite.position.x + keySprite.width + 2,
+    4
+  );
+  keysIndicator.addChild(keysCounterTextContainer);
+  textToSprite({
+    text: "0",
+    container: keysCounterTextContainer,
+    type: "white",
+    scale: 0.7,
+    separation: 4,
+  });
+
   topBar.decreaseHealthPoints = function () {
     const heart = this.hearts[player.healthPoints];
     if (heart.textures === resources.heart_hit.spritesheet.animations.heart_hit)
@@ -1381,6 +1524,22 @@ function setUI() {
     textToSprite({
       text: `${player.fruits}`,
       container: fruitsCounterTextContainer,
+      type: "white",
+      scale: 0.7,
+      separation: 4,
+    });
+  };
+
+  topBar.setKeys = () => {
+    const textSprites = keysCounterTextContainer.children.map((child) => child);
+
+    textSprites.forEach((text) => {
+      keysCounterTextContainer.removeChild(text);
+    });
+
+    textToSprite({
+      text: `1`,
+      container: keysCounterTextContainer,
       type: "white",
       scale: 0.7,
       separation: 4,
