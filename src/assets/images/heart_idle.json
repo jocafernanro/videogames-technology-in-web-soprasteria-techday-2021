@@ -1,0 +1,81 @@
+{
+  "frames": {
+    "heart_000.png": {
+      "frame": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_001.png": {
+      "frame": { "x": 18, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_002.png": {
+      "frame": { "x": 36, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_003.png": {
+      "frame": { "x": 54, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_004.png": {
+      "frame": { "x": 72, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_005.png": {
+      "frame": { "x": 90, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_006.png": {
+      "frame": { "x": 108, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_007.png": {
+      "frame": { "x": 126, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    }
+  },
+  "animations": {
+    "heart_idle": [
+      "heart_000.png",
+      "heart_001.png",
+      "heart_002.png",
+      "heart_003.png",
+      "heart_004.png",
+      "heart_005.png",
+      "heart_006.png",
+      "heart_007.png"
+    ]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "heart_idle.png",
+    "format": "RGBA8888",
+    "size": { "w": 144, "h": 14 },
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:18f9a70cf58f1a941a1972a01c82923c:56db497075c68c657e126c06322ff6ec:18f9d3c9f488b5e29a6ac658b9cd0784$"
+  }
+}

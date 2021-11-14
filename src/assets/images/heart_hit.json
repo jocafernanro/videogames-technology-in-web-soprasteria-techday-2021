@@ -1,0 +1,30 @@
+{
+  "frames": {
+    "heart_hit_000.png": {
+      "frame": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    },
+    "heart_hit_001.png": {
+      "frame": { "x": 18, "y": 0, "w": 18, "h": 14 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 14 },
+      "sourceSize": { "w": 18, "h": 14 }
+    }
+  },
+  "animations": {
+    "heart_hit": ["heart_hit_000.png", "heart_hit_001.png"]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "heart_hit.png",
+    "format": "RGBA8888",
+    "size": { "w": 36, "h": 14 },
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:891bcfbbd9a12f94065db73f03c4bf07:6da2190785a9c8d0a3ecce3547432c0e:8aa9a7935f3dcce4e4ab351a4cd7f48b$"
+  }
+}

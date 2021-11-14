@@ -33,8 +33,10 @@ const fruits = [];
 const rockHeads = [];
 const slimes = [];
 const boxes = [];
-const platforms = [];
 const rabbits = [];
+let key;
+let platform;
+let endPoint;
 let onAPlatform = false;
 let objectMark;
 let playerMark;
@@ -56,6 +58,13 @@ gameContainer.height = height;
 gameContainer.x = 0;
 gameContainer.y = 0;
 app.stage.addChild(gameContainer);
+
+const UIContainer = new Container();
+UIContainer.width = width;
+UIContainer.height = height;
+UIContainer.x = 0;
+UIContainer.y = 0;
+app.stage.addChild(UIContainer);
 
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
@@ -90,6 +99,33 @@ function testCollision(worldX, worldY) {
   const mapX = Math.floor(worldX / tileSize);
   const mapY = Math.floor(worldY / tileSize);
   return collisionsMap[mapY][mapX];
+}
+
+function hitBox(worldX, worldY) {
+  let hit = false;
+  for (let i = 0; i < boxes.length; i++) {
+    const box = boxes[i];
+    const pixelCorrection = 16;
+    if (
+      worldX + pixelCorrection >= box.position.x &&
+      worldX + pixelCorrection <= box.position.x + box.width &&
+      worldY >= box.position.y &&
+      worldY <= box.position.y + box.height
+    ) {
+      hit = true;
+      box.hit();
+      break;
+    }
+  }
+
+  console.log(hit);
+  return hit;
+}
+
+function textToSprite(letter, type = "white") {
+  return new PIXI.Sprite(
+    resources[`text_${type}`].textures[`${letter}_${type}`]
+  );
 }
 
 // function that check if there is a collision between two objects
@@ -251,6 +287,8 @@ function gameLoop(delta) {
       const testY = player.position.y + 5;
       if (
         onAPlatform ||
+        hitBox(testX1, testY) ||
+        hitBox(testX2, testY) ||
         testCollision(testX1, testY) ||
         testCollision(testX2, testY)
       ) {
@@ -325,8 +363,8 @@ function gameLoop(delta) {
   rockHeads.forEach((rockHead) => {
     rockHead.routine();
 
-    const playerIsOnTop = checkOnTop(rockHead);
-    if (playerIsOnTop && player.vy >= 0) {
+    const playerIsOnTopRockHead = checkOnTop(rockHead);
+    if (playerIsOnTopRockHead && player.vy >= 0) {
       console.log("on top");
       onAPlatform = true;
       player.position.y = rockHead.position.y - 27;
@@ -351,9 +389,7 @@ function gameLoop(delta) {
   });
 
   boxes.forEach((box) => {
-    if (checkCollision(player, box)) {
-      box.hit();
-    }
+    box.routine();
   });
 
   slimes.forEach((slime) => {
@@ -364,29 +400,57 @@ function gameLoop(delta) {
     rabbit.routine();
   });
 
-  if (player.jumped) {
-    if (player.vy < 0 && player.textures !== [resources.player_jump.texture]) {
-      player.textures = [resources.player_jump.texture];
-      player.play();
+  if (key) {
+    key.float();
+    if (checkCollision(player, key)) {
+      key.hasKey = true;
+      key.collected();
+    }
+  }
+
+  const playerIsOnTopPlatform = checkOnTop(platform);
+  platform.routine();
+  if (playerIsOnTopPlatform && player.vy >= 0) {
+    console.log("on top");
+    onAPlatform = true;
+    player.position.y = platform.position.y - 32;
+    if (!kb.pressed.ArrowRight && !kb.pressed.ArrowLeft)
+      player.position.x = platform.position.x;
+    player.vy = 0;
+  }
+
+  if (!player.appearing) {
+    if (player.jumped) {
+      if (
+        player.vy < 0 &&
+        player.textures !== [resources.player_jump.texture]
+      ) {
+        player.textures = [resources.player_jump.texture];
+        player.play();
+      } else if (
+        player.vy > 0 &&
+        player.textures !== [resources.player_fall.texture]
+      ) {
+        player.textures = [resources.player_fall.texture];
+        player.play();
+      }
+    } else if (player.vx !== 0) {
+      if (
+        player.textures !==
+        resources.player_run.spritesheet.animations.player_run
+      ) {
+        player.textures =
+          resources.player_run.spritesheet.animations.player_run;
+        player.play();
+      }
     } else if (
-      player.vy > 0 &&
-      player.textures !== [resources.player_fall.texture]
+      player.textures !==
+      resources.player_idle.spritesheet.animations.player_idle
     ) {
-      player.textures = [resources.player_fall.texture];
+      player.textures =
+        resources.player_idle.spritesheet.animations.player_idle;
       player.play();
     }
-  } else if (player.vx !== 0) {
-    if (
-      player.textures !== resources.player_run.spritesheet.animations.player_run
-    ) {
-      player.textures = resources.player_run.spritesheet.animations.player_run;
-      player.play();
-    }
-  } else if (
-    player.textures !== resources.player_idle.spritesheet.animations.player_idle
-  ) {
-    player.textures = resources.player_idle.spritesheet.animations.player_idle;
-    player.play();
   }
 }
 
@@ -452,6 +516,15 @@ function setStartPoint() {
   startPoint.animationSpeed = 0.3;
   startPoint.play();
   gameContainer.addChild(startPoint);
+}
+
+function setEndPoint() {
+  endPoint = new PIXI.AnimatedSprite([resources.end_idle.texture]);
+  endPoint.position.set(534, 41);
+  endPoint.animationSpeed = 0.3;
+  endPoint.scale.set(0.7);
+  endPoint.play();
+  gameContainer.addChild(endPoint);
 }
 
 function setFruits() {
@@ -588,12 +661,12 @@ function setMainScene() {
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1,  5,  6,  6,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1,  5,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, 22, 23, 38, 38, 38, 39, -1, -1, -1, -1, -1, -1, -1, 37, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1,  5,  6,  6,  6,  6,  7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 60, 61, 62, 17, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, 22, 23, 38, 38, 38, 39, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 93, 94, 95, 17, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 34, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
-    [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 60, 61, 61, 61, 61, 61, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
+    [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,114, -1, -1, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,132,133,100, -1],
     [ -1, 19, -1, -1, -1, -1, -1, 22, 25,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7, 60, 61, 61, 61, 61, 61, 61, 61, 62,  5,  6,  6,  7,114, -1],
@@ -616,8 +689,8 @@ function setMainScene() {
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
@@ -643,7 +716,6 @@ function setMainScene() {
       const texture = texturesArray[colValue];
       const sprite = new Sprite(texture);
       sprite.position.set(colIndex * texture.width, rowIndex * texture.height);
-
       gameContainer.addChild(sprite);
     });
   });
@@ -651,17 +723,20 @@ function setMainScene() {
 
 function setPlayer() {
   player = new PIXI.AnimatedSprite(
-    resources.player_idle.spritesheet.animations.player_idle
+    resources.player_appearing.spritesheet.animations.player_appearing
   );
+  player.appearing = true;
+  player.loop = false;
   player.vx = 0;
   player.vy = 0;
   player.healthPoints = 4;
   player.fruits = 0;
+  player.hasKey = false;
   player.increaseFruits = function () {
     this.fruits++;
   };
-  player.position.set(510, 250);
-  player.animationSpeed = 0.3;
+  player.position.set(480, 220);
+  player.animationSpeed = 0.2;
   player.scale.x = -1;
   player.anchor.x = 1;
   player.hasCollidedWith = function (object) {
@@ -673,6 +748,12 @@ function setPlayer() {
     );
   };
   player.play();
+  player.onComplete = function () {
+    this.appearing = false;
+    this.loop = true;
+    player.position.set(510, 250);
+    player.animationSpeed = 0.3;
+  };
   gameContainer.addChild(player);
 }
 
@@ -753,27 +834,6 @@ function setRockHeads() {
   gameContainer.addChild(rockHead);
 }
 
-function setHealthBar() {
-  healthBar = new PIXI.Graphics();
-  healthBar.beginFill(0x000000);
-  healthBar.drawRect(0, 0, 100, 10);
-  healthBar.endFill();
-  healthBar.position.set(23, 10);
-  healthBar.scale.set(1, 1);
-  healthBar.setHealthPoints = function setHealthPoints(healthPoints = 4) {
-    this.healthPoints = healthPoints;
-  };
-  healthBar.incrementHealthPoints = function incrementHealthPoints() {
-    this.healthPoints += 1;
-  };
-  healthBar.decrementHealthPoints = function decrementHealthPoints() {
-    this.healthPoints -= 1;
-  };
-  gameContainer.addChild(healthBar);
-
-  healthBar.setHealthPoints(player.healthPoints);
-}
-
 function setBoxes() {
   // const boxPiece1 = new PIXI.Sprite(resources.box_break.textures.box_break_0);
   // const boxPiece2 = new PIXI.Sprite(resources.box_break.textures.box_break_1);
@@ -783,34 +843,60 @@ function setBoxes() {
   const boxesConfig = [
     {
       nHits: 1,
-      x: 150,
-      y: 150,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 150, y: 149 },
+      end: { x: 150, y: 151 },
     },
     {
       nHits: 1,
-      x: 170,
-      y: 150,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 170, y: 149 },
+      end: { x: 170, y: 151 },
     },
     {
       nHits: 1,
-      x: 300,
-      y: 260,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 300, y: 259 },
+      end: { x: 300, y: 261 },
     },
     {
       nHits: 1,
-      x: 320,
-      y: 260,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 320, y: 259 },
+      end: { x: 320, y: 261 },
     },
     {
       nHits: 3,
-      x: 340,
-      y: 260,
+      velocity: 0.05,
+      direction: 1,
+      vx: 4,
+      vy: 4,
+      start: { x: 340, y: 259 },
+      end: { x: 340, y: 261 },
     },
   ];
 
   boxesConfig.forEach((boxConfig) => {
     const box = new PIXI.AnimatedSprite([resources.box_idle.texture]);
-    box.position.set(boxConfig.x, boxConfig.y);
+    box.velocity = boxConfig.velocity;
+    box.direction = boxConfig.direction;
+    box.vx = boxConfig.vx;
+    box.vy = boxConfig.vy;
+    box.start = boxConfig.start;
+    box.end = boxConfig.end;
+    box.position.set(boxConfig.start.x, boxConfig.start.y);
     box.animationSpeed = 0.3;
     box.play();
 
@@ -822,6 +908,7 @@ function setBoxes() {
 
       this.onComplete = () => {
         this.nHitsDone += 1;
+        box.textures = [resources.box_idle.texture];
         if (this.nHitsDone === boxConfig.nHits) {
           boxes.splice(boxes.indexOf(box), 1);
           gameContainer.removeChild(this);
@@ -829,6 +916,40 @@ function setBoxes() {
         }
       };
     };
+
+    box.routine = function () {
+      let progressX;
+      let progressY;
+      let goal;
+
+      if (this.direction === 1) {
+        progressX = this.end.x - this.position.x;
+        progressY = this.end.y - this.position.y;
+        goal = { x: this.end.x, y: this.end.y };
+      } else if (this.direction === -1) {
+        progressX = this.position.x - this.start.x;
+        progressY = this.position.y - this.start.y;
+        goal = { x: this.start.x, y: this.start.y };
+      }
+
+      if (progressX !== 0)
+        this.position.x =
+          progressX <= this.velocity
+            ? goal.x
+            : this.position.x + this.velocity * this.direction;
+
+      if (progressY !== 0)
+        this.position.y =
+          progressY <= this.velocity
+            ? goal.y
+            : this.position.y + this.velocity * this.direction;
+
+      if (progressX === 0 && progressY === 0) {
+        this.direction = -this.direction;
+      }
+    };
+
+    // box.routine = function () {};
     gameContainer.addChild(box);
     boxes.push(box);
   });
@@ -851,7 +972,7 @@ function setSlimes() {
       vx: 4,
       vy: 4,
       start: { x: 350, y: 178 },
-      end: { x: 450, y: 178 },
+      end: { x: 500, y: 178 },
       animationSpeed: 0.3,
     },
   ];
@@ -976,21 +1097,173 @@ function setRabbits() {
   });
 }
 
-function setPlatforms() {}
+function setPlatform() {
+  platform = new PIXI.AnimatedSprite(
+    resources.platform_on.spritesheet.animations.platform_on
+  );
+  platform.animationSpeed = 0.3;
+  platform.velocity = 2;
+  platform.direction = 1;
+  platform.vx = 4;
+  platform.vy = 4;
+  platform.start = { x: 220, y: 80 };
+  platform.end = { x: 490, y: 80 };
+
+  platform.position.set(platform.start.x, platform.start.y);
+  platform.play();
+
+  platform.routine = function () {
+    let progressX;
+    let progressY;
+    let goal;
+
+    if (this.direction === 1) {
+      progressX = this.end.x - this.position.x;
+      progressY = this.end.y - this.position.y;
+      goal = { x: this.end.x, y: this.end.y };
+    } else if (this.direction === -1) {
+      progressX = this.position.x - this.start.x;
+      progressY = this.position.y - this.start.y;
+      goal = { x: this.start.x, y: this.start.y };
+    }
+
+    if (progressX !== 0)
+      this.position.x =
+        progressX <= this.velocity
+          ? goal.x
+          : this.position.x + this.velocity * this.direction;
+
+    if (progressY !== 0)
+      this.position.y =
+        progressY <= this.velocity
+          ? goal.y
+          : this.position.y + this.velocity * this.direction;
+
+    if (progressX === 0 && progressY === 0) {
+      this.direction = -this.direction;
+    }
+  };
+  gameContainer.addChild(platform);
+}
+
+function setKey() {
+  key = new PIXI.AnimatedSprite([resources.key.texture]);
+  key.velocity = 0.2;
+  key.direction = 1;
+  key.vx = 4;
+  key.vy = 4;
+  key.start = { x: 555, y: 185 };
+  key.end = { x: 555, y: 190 };
+  key.position.set(key.start.x, key.start.y);
+
+  key.float = function () {
+    let progressX;
+    let progressY;
+    let goal;
+
+    if (this.direction === 1) {
+      progressX = this.end.x - this.position.x;
+      progressY = this.end.y - this.position.y;
+      goal = { x: this.end.x, y: this.end.y };
+    } else if (this.direction === -1) {
+      progressX = this.position.x - this.start.x;
+      progressY = this.position.y - this.start.y;
+      goal = { x: this.start.x, y: this.start.y };
+    }
+
+    if (progressX !== 0)
+      this.position.x =
+        progressX <= this.velocity
+          ? goal.x
+          : this.position.x + this.velocity * this.direction;
+
+    if (progressY !== 0)
+      this.position.y =
+        progressY <= this.velocity
+          ? goal.y
+          : this.position.y + this.velocity * this.direction;
+
+    if (progressX === 0 && progressY === 0) {
+      this.direction = -this.direction;
+    }
+  };
+
+  key.collected = function () {
+    key = undefined;
+    this.textures =
+      resources.fruit_collected.spritesheet.animations.fruit_collected;
+    this.loop = false;
+    this.play();
+    this.onComplete = function () {
+      gameContainer.removeChild(this);
+      this.destroy();
+    };
+  };
+
+  gameContainer.addChild(key);
+}
+
+function setHealthBar() {
+  healthBar = new PIXI.Graphics();
+  healthBar.beginFill(0x000000);
+  healthBar.drawRect(0, 0, 100, 10);
+  healthBar.endFill();
+  healthBar.position.set(23, 10);
+  healthBar.scale.set(1, 1);
+  healthBar.setHealthPoints = function setHealthPoints(healthPoints = 4) {
+    this.healthPoints = healthPoints;
+  };
+  healthBar.incrementHealthPoints = function incrementHealthPoints() {
+    this.healthPoints += 1;
+  };
+  healthBar.decrementHealthPoints = function decrementHealthPoints() {
+    this.healthPoints -= 1;
+  };
+  gameContainer.addChild(healthBar);
+  healthBar.setHealthPoints(player.healthPoints);
+}
+
+function setUI() {
+  const topBar = new PIXI.Container();
+  topBar.position.set(23, 10);
+  topBar.scale.set(1, 1);
+  UIContainer.addChild(topBar);
+
+  const healthText = "health:";
+  for (let i = 0; i < healthText.length; i++) {
+    const letter = healthText[i];
+    const textSprite = textToSprite(letter, "white");
+    textSprite.scale.set(0.5);
+    textSprite.position.set(0 + 4 * i, 3);
+    topBar.addChild(textSprite);
+  }
+  for (let i = 0; i < player.healthPoints; i++) {
+    const heart = new PIXI.AnimatedSprite(
+      resources.heart_idle.spritesheet.animations.heart_idle
+    );
+    heart.animationSpeed = 0.1;
+    heart.position.set(30 + i * 10, 0);
+    heart.scale.set(0.8);
+    heart.play();
+    topBar.addChild(heart);
+  }
+}
 
 function setup() {
   setBackground();
   setMainScene();
-  setPlatforms();
   setStartPoint();
+  setEndPoint();
+  setPlatform();
   setPlayer();
   setRockHeads();
   setSlimes();
-  // setRabbits();
   setHealthBar();
   setFruits();
   setCheckpoints();
   setBoxes();
+  setKey();
+  setUI();
 
   app.ticker.add(gameLoop);
 }
@@ -1003,6 +1276,8 @@ loader
   .add("player_run", "./assets/images/player_run.json")
   .add("player_jump", "./assets/images/player_jump.png")
   .add("player_fall", "./assets/images/player_fall.png")
+  .add("player_appearing", "./assets/images/player_appearing.json")
+  .add("player_disappearing", "./assets/images/player_desappearing.json")
   .add("rock_head_idle", "./assets/images/rock_head_idle.png")
   .add("rock_head_blink", "./assets/images/rock_head_blink.json")
   .add("rock_head_top_hit", "./assets/images/rock_head_top_hit.json")
@@ -1024,4 +1299,13 @@ loader
   .add("rabbit_idle", "./assets/images/rabbit_idle.json")
   .add("rabbit_hit", "./assets/images/rabbit_hit.json")
   .add("rabbit_run", "./assets/images/rabbit_run.json")
+  .add("end_pressed", "./assets/images/end_pressed.json")
+  .add("end_idle", "./assets/images/end_idle.png")
+  .add("platform_on", "./assets/images/platform_on.json")
+  .add("platform_off", "./assets/images/platform_off.png")
+  .add("key", "./assets/images/key.png")
+  .add("text_black", "./assets/images/text_black.json")
+  .add("text_white", "./assets/images/text_white.json")
+  .add("heart_idle", "./assets/images/heart_idle.json")
+  .add("heart_hit", "./assets/images/heart_hit.json")
   .load(setup);
