@@ -132,6 +132,11 @@ const checkpointUnlockedSound = new Howl({
   volume: 0.4,
 });
 
+const endSound = new Howl({
+  src: ["assets/audio/end.wav"],
+  volume: 0.4,
+});
+
 class Keyboard {
   constructor() {
     this.pressed = {};
@@ -206,10 +211,10 @@ function checkCollision(object1, object2) {
   const object2Y = object2.position.y;
 
   // get the size of the objects
-  const object1Width = object1.width - 4;
-  const object1Height = object1.height - 4;
-  const object2Width = object2.width - 4;
-  const object2Height = object2.height - 4;
+  const object1Width = object1.width - 10;
+  const object1Height = object1.height - 10;
+  const object2Width = object2.width - 10;
+  const object2Height = object2.height - 10;
 
   // check if the objects are colliding
   if (
@@ -416,18 +421,18 @@ function gameLoop(delta) {
   if (kb.pressed.ArrowRight) {
     // stepsSound.play();
     player.direction = 0;
-    player.vx = Math.min(6, player.vx + 2);
+    player.vx = Math.min(5, player.vx + 2);
   }
   if (kb.pressed.ArrowLeft) {
     // stepsSound.play();
     player.direction = 1;
-    player.vx = Math.max(-6, player.vx - 2);
+    player.vx = Math.max(-5, player.vx - 2);
   }
   if (!kb.pressed.ArrowUp && touchingGround && player.jumped) {
     player.jumped = false;
   }
   if (kb.pressed.ArrowUp && touchingGround && !player.jumped) {
-    player.vy = -14;
+    player.vy = -12;
     player.jumped = true;
     onAPlatform = false;
   }
@@ -480,6 +485,8 @@ function gameLoop(delta) {
   rabbits.forEach((rabbit) => {
     rabbit.routine();
   });
+
+  if (checkCollision(player, endPoint) && !endPoint.pressed) endPoint.finish();
 
   if (key) {
     key.float();
@@ -606,9 +613,10 @@ function setStartPoint() {
 
 function setEndPoint() {
   endPoint = new PIXI.AnimatedSprite([resources.end_idle.texture]);
-  endPoint.position.set(534, 41);
+  endPoint.position.set(530, 41);
   endPoint.animationSpeed = 0.3;
   endPoint.scale.set(0.7);
+  endPoint.pressed = false;
   endPoint.play();
   gameContainer.addChild(endPoint);
 
@@ -637,6 +645,7 @@ function setEndPoint() {
   barrierContainer.addChild(barrier5);
 
   endPoint.unlock = () => {
+    collisionsMap.unlockEnd();
     const barrierItems = barrierContainer.children.map(
       (barrierItem) => barrierItem
     );
@@ -647,6 +656,15 @@ function setEndPoint() {
       }, 500 + index * 300);
     });
   };
+
+  endPoint.finish = function () {
+    endSound.play();
+    endPoint.pressed = true;
+    this.textures = resources.end_pressed.spritesheet.animations.end_pressed;
+    this.play();
+  };
+
+  endPoint.onComplete = () => {};
 }
 
 function setFruits() {
@@ -674,6 +692,14 @@ function setFruits() {
       alignment: "horizontal",
       separation: 30,
       fruit: "orange",
+    },
+    {
+      nOfFruits: 8,
+      initialX: 245,
+      initialY: 40,
+      alignment: "horizontal",
+      separation: 30,
+      fruit: "banana",
     },
   ];
 
@@ -817,11 +843,11 @@ function setMainScene() {
   collisionsMap = [
     [  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
     [  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1],
-    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  1,  1,  1,  1], 
+    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1],
+    [  1,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
     [  1,  1,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1],
@@ -896,6 +922,25 @@ function setMainScene() {
       gameContainer.addChild(sprite);
     });
   });
+
+  collisionsMap.unlockEnd = function () {
+    const barrierCollisionConfig = [
+      { x: 30, y: 2 },
+      { x: 30, y: 3 },
+      { x: 30, y: 4 },
+      { x: 30, y: 5 },
+      { x: 30, y: 6 },
+      { x: 31, y: 2 },
+      { x: 31, y: 3 },
+      { x: 31, y: 4 },
+      { x: 31, y: 5 },
+      { x: 31, y: 6 },
+    ];
+    // 30 31 / 02 - 06
+    barrierCollisionConfig.forEach((config) => {
+      collisionsMap[config.y][config.x] = 0;
+    });
+  };
 }
 
 function setPlayer() {
@@ -1582,7 +1627,7 @@ function setUI() {
     container: fruitsCounterTextContainer,
     type: "white",
     scale: 0.7,
-    separation: 4,
+    separation: 10,
   });
 
   const keysIndicator = new PIXI.Container();
@@ -1622,6 +1667,21 @@ function setUI() {
     separation: 4,
   });
 
+  const settingsBar = new PIXI.Container();
+  settingsBar.position.set(568, 5);
+  settingsBar.height = 15;
+  UIContainer.addChild(settingsBar);
+
+  const volumeButton = new Sprite(resources.volume_button.texture);
+  volumeButton.scale.set(0.5);
+  volumeButton.position.set(0, 3);
+  settingsBar.addChild(volumeButton);
+
+  const restartButton = new Sprite(resources.restart_button.texture);
+  restartButton.scale.set(0.5);
+  restartButton.position.set(volumeButton.x + volumeButton.width, 3);
+  settingsBar.addChild(restartButton);
+
   topBar.decreaseHealthPoints = function () {
     const heart = this.hearts[player.healthPoints];
     if (heart.textures === resources.heart_hit.spritesheet.animations.heart_hit)
@@ -1657,7 +1717,7 @@ function setUI() {
       container: fruitsCounterTextContainer,
       type: "white",
       scale: 0.7,
-      separation: 4,
+      separation: 5,
     });
   };
 
@@ -1678,8 +1738,13 @@ function setUI() {
   };
 }
 
+function setSounds() {
+  const sounds = new Howl(resources.gameSounds.data);
+}
+
 function setup() {
   backgroundMusic.play();
+
   setBackground();
   setMainScene();
   setStartPoint();
@@ -1693,6 +1758,7 @@ function setup() {
   setKey();
   setPlayer();
   setUI();
+  setSounds();
 
   app.ticker.add(gameLoop);
 }
@@ -1738,6 +1804,7 @@ loader
   .add("text_white", "./assets/images/text_white.json")
   .add("heart_idle", "./assets/images/heart_idle.json")
   .add("heart_hit", "./assets/images/heart_hit.json")
-  .add("background_music", "./assets/audio/background.wav")
-  .add("fruit_sound", "./assets/audio/fruit.wav")
+  .add("volume_button", "./assets/images/buttons/volume.png")
+  .add("restart_button", "./assets/images/buttons/restart.png")
+  .add("gameSounds", "./assets/audio/gameSounds.json")
   .load(setup);
