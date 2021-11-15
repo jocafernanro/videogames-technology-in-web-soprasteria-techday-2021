@@ -137,6 +137,16 @@ const endSound = new Howl({
   volume: 0.4,
 });
 
+const jumpSound = new Howl({
+  src: ["assets/audio/jump.wav"],
+  volume: 0.2,
+});
+
+const landingSound = new Howl({
+  src: ["assets/audio/landing.wav"],
+  volume: 2,
+});
+
 class Keyboard {
   constructor() {
     this.pressed = {};
@@ -428,10 +438,12 @@ function gameLoop(delta) {
     player.direction = 1;
     player.vx = Math.max(-5, player.vx - 2);
   }
-  if (!kb.pressed.ArrowUp && touchingGround && player.jumped) {
+  if (!kb.pressed.ArrowUp && (onAPlatform || touchingGround) && player.jumped) {
+    landingSound.play();
     player.jumped = false;
   }
   if (kb.pressed.ArrowUp && touchingGround && !player.jumped) {
+    jumpSound.play();
     player.vy = -12;
     player.jumped = true;
     onAPlatform = false;
@@ -467,7 +479,6 @@ function gameLoop(delta) {
 
     const playerIsOnTopBox = checkOnTop(box);
     if (playerIsOnTopBox && player.vy >= 0) {
-      console.log("player is on top of box");
       onAPlatform = true;
       player.position.y = box.position.y - 30;
       player.vy = 0;
@@ -893,22 +904,28 @@ function setMainScene() {
     [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
   ]
 
+  const farAwayFilter = new AdjustmentFilter({
+    gamma: 8,
+    brightness: 0.8,
+    saturation: 0.8,
+    blue: 0.85,
+  });
+
+  const mainScenario = new PIXI.Container();
+  mainScenario.position.set(0, 0);
+
+  const farAwayScenario = new PIXI.Container();
+  farAwayScenario.position.set(0, 0);
+  farAwayScenario.filters = [farAwayFilter];
+
   scenarioTexturesWithFilter.forEach((row, rowIndex) => {
     row.forEach((colValue, colIndex) => {
       if (colValue === -1) return;
       const texturesArray = Object.values(terrainTextures);
       const texture = texturesArray[colValue];
       const sprite = new Sprite(texture);
-      sprite.filters = [
-        new AdjustmentFilter({
-          gamma: 8,
-          brightness: 0.8,
-          saturation: 0.8,
-          blue: 0.85,
-        }),
-      ];
       sprite.position.set(colIndex * texture.width, rowIndex * texture.height);
-      gameContainer.addChild(sprite);
+      farAwayScenario.addChild(sprite);
     });
   });
 
@@ -919,7 +936,7 @@ function setMainScene() {
       const texture = texturesArray[colValue];
       const sprite = new Sprite(texture);
       sprite.position.set(colIndex * texture.width, rowIndex * texture.height);
-      gameContainer.addChild(sprite);
+      mainScenario.addChild(sprite);
     });
   });
 
@@ -936,11 +953,14 @@ function setMainScene() {
       { x: 31, y: 5 },
       { x: 31, y: 6 },
     ];
-    // 30 31 / 02 - 06
+
     barrierCollisionConfig.forEach((config) => {
       collisionsMap[config.y][config.x] = 0;
     });
   };
+
+  gameContainer.addChild(farAwayScenario);
+  gameContainer.addChild(mainScenario);
 }
 
 function setPlayer() {
