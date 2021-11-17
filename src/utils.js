@@ -122,3 +122,41 @@ export const checkOnTop = (player, object) => {
   }
   return false;
 };
+
+export const executeRoutine = (
+  object,
+  callbackWhenEndRoutine = () => {},
+  callbackWhenStartRoutine = () => {}
+) => {
+  let progressX;
+  let progressY;
+  let goal;
+
+  if (object.direction === 1) {
+    progressX = object.end.x - object.position.x;
+    progressY = object.end.y - object.position.y;
+    goal = { x: object.end.x, y: object.end.y };
+    if (progressY === 0) callbackWhenEndRoutine();
+  } else if (object.direction === -1) {
+    progressX = object.position.x - object.start.x;
+    progressY = object.position.y - object.start.y;
+    goal = { x: object.start.x, y: object.start.y };
+    if (progressY === 0) callbackWhenStartRoutine();
+  }
+
+  if (progressX !== 0)
+    object.position.x =
+      progressX <= object.velocity
+        ? goal.x
+        : object.position.x + object.velocity * object.direction;
+
+  if (progressY !== 0)
+    object.position.y =
+      progressY <= object.velocity
+        ? goal.y
+        : object.position.y + object.velocity * object.direction;
+
+  if (progressX === 0 && progressY === 0) {
+    object.direction = -object.direction;
+  }
+};

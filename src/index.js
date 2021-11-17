@@ -25,6 +25,7 @@ import {
   testCollision,
   hitBox,
   checkOnTop,
+  executeRoutine,
 } from "./utils";
 import Keyboard from "./keyboard";
 
@@ -181,14 +182,12 @@ function gameLoop(delta) {
       player.x -= 1;
     }
   }
-  // stepsSound.stop();
+
   if (kb.pressed.ArrowRight) {
-    // stepsSound.play();
     player.direction = 0;
     player.vx = Math.min(5, player.vx + 2);
   }
   if (kb.pressed.ArrowLeft) {
-    // stepsSound.play();
     player.direction = 1;
     player.vx = Math.max(-5, player.vx - 2);
   }
@@ -204,8 +203,7 @@ function gameLoop(delta) {
   }
 
   rockHeads.forEach((rockHead) => {
-    rockHead.routine();
-
+    executeRoutine(rockHead, rockHead.bottomHit);
     const playerIsOnTopRockHead = checkOnTop(player, rockHead);
     if (playerIsOnTopRockHead && player.vy >= 0) {
       onAPlatform = true;
@@ -231,8 +229,7 @@ function gameLoop(delta) {
   });
 
   boxes.forEach((box) => {
-    box.routine();
-
+    executeRoutine(box);
     const playerIsOnTopBox = checkOnTop(player, box);
     if (playerIsOnTopBox && player.vy >= 0) {
       onAPlatform = true;
@@ -242,16 +239,11 @@ function gameLoop(delta) {
   });
 
   slimes.forEach((slime) => {
-    slime.routine();
-
+    executeRoutine(slime);
     if (checkCollisionBetweenTwoObjects(player, slime)) {
       player.decreaseHealthPoints(lastCheckpoint);
       topBar.decreaseHealthPoints(player.healthPoints);
     }
-  });
-
-  rabbits.forEach((rabbit) => {
-    rabbit.routine();
   });
 
   if (checkCollisionBetweenTwoObjects(player, endPoint) && !endPoint.pressed)
@@ -269,7 +261,7 @@ function gameLoop(delta) {
   }
 
   const playerIsOnTopPlatform = checkOnTop(player, platform);
-  platform.routine();
+  executeRoutine(platform);
   if (playerIsOnTopPlatform && player.vy >= 0) {
     onAPlatform = true;
     player.position.y = platform.position.y - 32;
@@ -316,7 +308,6 @@ function gameLoop(delta) {
 function setup() {
   sounds = setSounds();
   bgSounds = setBgSounds();
-  window.sounds = sounds;
 
   gameContainer = setGameContainer(app, height, width);
   UIContainer = setUIContainer(app, height, width);
