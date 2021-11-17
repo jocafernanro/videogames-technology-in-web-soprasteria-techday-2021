@@ -1,0 +1,11 @@
+{
+  "src": [
+    "./assets/audio/bg_sounds.ogg",
+    "./assets/audio/bg_sounds.m4a",
+    "./assets/audio/bg_sounds.mp3",
+    "./assets/audio/bg_sounds.ac3"
+  ],
+  "sprite": {
+    "background": [0, 74254.14965986394, true]
+  }
+}

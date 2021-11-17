@@ -11,5 +11,9 @@ module.exports = {
   },
   rules: {
     "no-console": process.env.NODE_ENV === "production" ? 2 : 0,
+    "func-names": ["off"],
+    "no-unused-vars": ["off"],
+    "no-plusplus": ["off"],
+    "no-param-reassign": ["off"],
   },
 };
