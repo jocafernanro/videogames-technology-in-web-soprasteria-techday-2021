@@ -39,16 +39,16 @@ const resolutionRatio = 1.7777777777777777;
 const width = 1280;
 const height = Math.round(width / resolutionRatio);
 const tileSize = 16;
-
-let player;
-let collisionsMap;
-let touchingGround = false;
 const checkpoints = [];
 const fruits = [];
 const rockHeads = [];
 const slimes = [];
 const boxes = [];
 const rabbits = [];
+
+let player;
+let collisionsMap;
+let touchingGround = false;
 let gameContainer;
 let UIContainer;
 let topBar;
@@ -250,7 +250,7 @@ function gameLoop(delta) {
     endPoint.finish();
 
   if (key) {
-    key.float();
+    executeRoutine(key);
     if (checkCollisionBetweenTwoObjects(player, key)) {
       player.hasKey = true;
       key.collected();
