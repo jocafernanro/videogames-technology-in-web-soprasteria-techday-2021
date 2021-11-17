@@ -5,6 +5,9 @@
 
 body {
   background-color: #211f30;
+  font-family: VT323;
+  font-size: 16px;
+  color: #ffffff;
 }
 
 /* canvas {
@@ -14,4 +17,67 @@ body {
 #main-container {
   width: 1200px;
   margin: 0 auto;
+}
+
+.header {
+  margin-left: 2em;
+  margin-top: 1em;
+  font-size: 1.5em;
+}
+
+.social-icons {
+  list-style: none;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  font-size: 1.5em;
+}
+
+.social-icons__item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 2em;
+  margin-right: 20px;
+}
+
+.social-icons__item__text {
+  margin-left: 0.6em;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: opacity 500ms;
+  visibility: hidden;
+  /* opacity: 0; */
+}
+
+.popup-text {
+  width: 300px;
+  margin: 0 auto;
+  margin-top: 5em;
+}
+
+.popup-text__title {
+  font-size: 3em;
+  margin-bottom: 0.5em;
+}
+
+.popup-text__paragraph {
+  margin-top: 0.5em;
+}
+
+.popup-text__button {
+  margin-top: 0.8em;
+  padding: 0.5em 1em;
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: none;
+  color: #211f30;
+  cursor: pointer;
 }

@@ -4,6 +4,8 @@ import { AnimatedSprite, Loader } from "pixi.js";
 const { resources } = Loader.shared;
 
 export default function setCheckpoints(gameContainer, checkpoints, sounds) {
+  const popup = document.querySelector(".popup");
+  const openPopupEvent = new Event("openPopup");
   const checkpointsConfiguration = [
     {
       x: 95,
@@ -37,6 +39,7 @@ export default function setCheckpoints(gameContainer, checkpoints, sounds) {
           resources.flag_idle.spritesheet.animations.flag_idle;
         checkpoint.loop = true;
         checkpoint.play();
+        popup.dispatchEvent(openPopupEvent);
       };
     };
 

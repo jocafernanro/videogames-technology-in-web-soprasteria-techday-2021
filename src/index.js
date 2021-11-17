@@ -2,6 +2,7 @@ import "./assets/styles/style.css";
 import * as PIXI from "pixi.js";
 import { Howl } from "howler";
 
+import attachEvents from "./attachEvents";
 import setBackground from "./setBackground";
 import setMainScene from "./setMainScene";
 import setStartPoint from "./setStartPoint";
@@ -73,7 +74,9 @@ PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 app.stage.scale.set(2);
 
-document.querySelector("#main-container").appendChild(app.view);
+document.querySelector("#canvas-container").appendChild(app.view);
+
+const popup = document.querySelector(".popup");
 
 const kb = new Keyboard();
 kb.watch(document.body);
@@ -305,6 +308,7 @@ function gameLoop(delta) {
 }
 
 function setup() {
+  attachEvents();
   sounds = setSounds();
   bgSounds = setBgSounds();
 
