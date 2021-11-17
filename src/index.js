@@ -66,7 +66,6 @@ const app = new Application({
   height,
   roundPixels: true,
   antialias: true,
-  backgroundAlpha: 0,
   resolution: 1,
 });
 
