@@ -15,5 +15,6 @@ module.exports = {
     "no-unused-vars": ["off"],
     "no-plusplus": ["off"],
     "no-param-reassign": ["off"],
+    "prefer-const": ["off"],
   },
 };
