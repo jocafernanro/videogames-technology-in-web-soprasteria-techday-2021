@@ -2,6 +2,7 @@ import "./assets/styles/style.css";
 import * as PIXI from "pixi.js";
 import { Howl } from "howler";
 
+import createApplication from "./createApplication";
 import attachEvents from "./attachEvents";
 import setBackground from "./setBackground";
 import setMainScene from "./setMainScene";
@@ -32,7 +33,6 @@ import Keyboard from "./keyboard";
 
 window.PIXI = PIXI; // remove when finished
 
-const { Application, Container } = PIXI;
 const loader = PIXI.Loader.shared;
 const { resources } = PIXI.Loader.shared;
 
@@ -45,7 +45,6 @@ const fruits = [];
 const rockHeads = [];
 const slimes = [];
 const boxes = [];
-const rabbits = [];
 
 let player;
 let collisionsMap;
@@ -61,22 +60,15 @@ let lastCheckpoint;
 let sounds;
 let bgSounds;
 
-const app = new Application({
+const app = createApplication({
   backgroundColor: 0x211f30,
   width,
   height,
   roundPixels: true,
   antialias: true,
   resolution: 1,
+  scale: 2,
 });
-
-PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-
-app.stage.scale.set(2);
-
-document.querySelector("#canvas-container").appendChild(app.view);
-
-const popup = document.querySelector(".popup");
 
 const kb = new Keyboard();
 kb.watch(document.body);
@@ -315,8 +307,8 @@ function setup() {
   gameContainer = setGameContainer(app, height, width);
   UIContainer = setUIContainer(app, height, width);
 
-  setBackground(app, gameContainer);
-  collisionsMap = setMainScene(app, gameContainer);
+  setBackground(gameContainer);
+  collisionsMap = setMainScene(gameContainer);
   setStartPoint(gameContainer);
   endPoint = setEndPoint(gameContainer, collisionsMap, sounds);
   platform = setPlatform(gameContainer);
@@ -329,7 +321,6 @@ function setup() {
   player = setPlayer(gameContainer, sounds);
   topBar = setUI(UIContainer, player, sounds, bgSounds);
 
-  bgSounds.play("background");
   app.ticker.add(gameLoop);
 }
 
@@ -379,3 +370,19 @@ loader
   .add("game_sounds", "./assets/audio/game_sounds.json")
   .add("bg_sounds", "./assets/audio/bg_sounds.json")
   .load(setup);
+
+loader.onLoad.add(() => {
+  console.log("on load");
+});
+
+loader.onError.add(() => {
+  console.log("on error");
+});
+
+loader.onProgress.add(() => {
+  console.log("on progress");
+});
+
+loader.onProgress.add(() => {
+  console.log("on progress");
+});

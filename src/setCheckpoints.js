@@ -6,6 +6,7 @@ const { resources } = Loader.shared;
 export default function setCheckpoints(gameContainer, checkpoints, sounds) {
   const popup = document.querySelector(".popup");
   const openPopupEvent = new Event("openPopup");
+
   const checkpointsConfiguration = [
     {
       x: 95,
@@ -21,13 +22,17 @@ export default function setCheckpoints(gameContainer, checkpoints, sounds) {
     const checkpoint = new AnimatedSprite([
       resources.checkpoint_noflag.texture,
     ]);
+
     checkpoint.achieved = false;
+
     checkpoint.position.set(
       checkpointConfiguration.x,
       checkpointConfiguration.y
     );
+
     checkpoint.animationSpeed = 0.3;
     checkpoint.play();
+
     checkpoint.achieved = () => {
       sounds.play("checkpoint_unlocked");
       checkpoint.completed = true;

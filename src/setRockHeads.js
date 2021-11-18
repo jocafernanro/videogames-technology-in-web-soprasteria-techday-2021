@@ -5,6 +5,7 @@ const { resources } = Loader.shared;
 
 export default function setRockHeads(gameContainer, rockHeads) {
   const rockHead = new AnimatedSprite([resources.rock_head_idle.texture]);
+
   const rockHeadHit = ({ animation } = {}) => {
     rockHead.textures = animation;
     rockHead.play();
@@ -13,6 +14,7 @@ export default function setRockHeads(gameContainer, rockHeads) {
       rockHead.textures = [resources.rock_head_idle.texture];
     };
   };
+
   rockHead.position.set(50, 27 + 100);
   rockHead.velocity = 4;
   rockHead.direction = 1;

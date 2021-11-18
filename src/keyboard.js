@@ -5,6 +5,7 @@ export default class Keyboard {
 
   watch(el) {
     el.addEventListener("keydown", (e) => {
+      console.log(e);
       this.pressed[e.key] = true;
     });
     el.addEventListener("keyup", (e) => {

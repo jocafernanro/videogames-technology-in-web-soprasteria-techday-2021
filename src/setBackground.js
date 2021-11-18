@@ -1,6 +1,6 @@
 import { CompositeTilemap } from "@pixi/tilemap";
 
-export default function setBackground(app, gameContainer) {
+export default function setBackground(gameContainer) {
   const backgroundTilemap = new CompositeTilemap();
   // prettier-ignore
   const backgroundMatrix = [
@@ -10,7 +10,6 @@ export default function setBackground(app, gameContainer) {
     [ 7, 1, 1, 1, 1, 1, 1, 1, 1, 8],
     [ 7, 1, 1, 1, 1, 1, 1, 1, 1, 3],
     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
   ];
 
   const distant = 64;

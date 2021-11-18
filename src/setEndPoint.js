@@ -21,19 +21,19 @@ export default function setEndPoint(gameContainer, collisionsMap, sounds) {
   barrierContainer.addChild(barrier);
 
   const barrier2 = new Sprite(resources.terrain.textures.metal_brick_v_2);
-  barrier2.position.set(0, barrier.y + barrier.height, 32);
+  barrier2.position.set(0, barrier.y + barrier.height);
   barrierContainer.addChild(barrier2);
 
   const barrier3 = new Sprite(resources.terrain.textures.metal_brick_v_2);
-  barrier3.position.set(0, barrier2.y + barrier2.height, 32);
+  barrier3.position.set(0, barrier2.y + barrier2.height);
   barrierContainer.addChild(barrier3);
 
   const barrier4 = new Sprite(resources.terrain.textures.metal_brick_v_2);
-  barrier4.position.set(0, barrier3.y + barrier3.height, 32);
+  barrier4.position.set(0, barrier3.y + barrier3.height);
   barrierContainer.addChild(barrier4);
 
   const barrier5 = new Sprite(resources.terrain.textures.metal_brick_v_3);
-  barrier5.position.set(0, barrier4.y + barrier4.height, 32);
+  barrier5.position.set(0, barrier4.y + barrier4.height);
   barrierContainer.addChild(barrier5);
 
   endPoint.unlock = () => {
@@ -55,8 +55,6 @@ export default function setEndPoint(gameContainer, collisionsMap, sounds) {
     this.textures = resources.end_pressed.spritesheet.animations.end_pressed;
     this.play();
   };
-
-  endPoint.onComplete = () => {};
 
   return endPoint;
 }

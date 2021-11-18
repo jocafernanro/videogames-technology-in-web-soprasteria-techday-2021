@@ -1,8 +1,8 @@
 {
   "src": [
+    "./assets/audio/game_sounds.mp3",
     "./assets/audio/game_sounds.ogg",
     "./assets/audio/game_sounds.m4a",
-    "./assets/audio/game_sounds.mp3",
     "./assets/audio/game_sounds.ac3"
   ],
   "sprite": {
