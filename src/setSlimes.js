@@ -26,8 +26,6 @@ export default function setSlimes(gameContainer, slimes) {
     );
     slime.velocity = slimeConfig.velocity;
     slime.direction = slimeConfig.direction;
-    slime.vx = slimeConfig.vx;
-    slime.vy = slimeConfig.vy;
     slime.start = slimeConfig.start;
     slime.end = slimeConfig.end;
     slime.position.set(slimeConfig.start.x, slimeConfig.start.y);

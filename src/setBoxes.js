@@ -102,8 +102,6 @@ export default function setBoxes(gameContainer, boxes, sounds) {
     const box = new AnimatedSprite([resources.box_idle.texture]);
     box.velocity = boxConfig.velocity;
     box.direction = boxConfig.direction;
-    box.vx = boxConfig.vx;
-    box.vy = boxConfig.vy;
     box.start = boxConfig.start;
     box.end = boxConfig.end;
     box.position.set(boxConfig.start.x, boxConfig.start.y);
