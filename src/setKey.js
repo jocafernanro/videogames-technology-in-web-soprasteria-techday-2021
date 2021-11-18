@@ -6,8 +6,6 @@ export default function setKey(gameContainer, sounds) {
   const key = new AnimatedSprite([resources.key.texture]);
   key.velocity = 0.2;
   key.direction = 1;
-  key.vx = 4;
-  key.vy = 4;
   key.start = { x: 555, y: 150 };
   key.end = { x: 555, y: 155 };
   key.position.set(key.start.x, key.start.y);

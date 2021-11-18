@@ -23,8 +23,6 @@ export default function setCheckpoints(gameContainer, checkpoints, sounds) {
       resources.checkpoint_noflag.texture,
     ]);
 
-    checkpoint.achieved = false;
-
     checkpoint.position.set(
       checkpointConfiguration.x,
       checkpointConfiguration.y

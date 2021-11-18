@@ -7,8 +7,6 @@ export default function setSlimes(gameContainer, slimes) {
     {
       velocity: 0.5,
       direction: 1,
-      vx: 4,
-      vy: 4,
       start: { x: 200, y: 178 },
       end: { x: 300, y: 178 },
       animationSpeed: 0.1,
@@ -16,8 +14,6 @@ export default function setSlimes(gameContainer, slimes) {
     {
       velocity: 1,
       direction: 1,
-      vx: 4,
-      vy: 4,
       start: { x: 350, y: 178 },
       end: { x: 500, y: 178 },
       animationSpeed: 0.3,

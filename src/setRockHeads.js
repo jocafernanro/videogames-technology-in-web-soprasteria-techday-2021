@@ -18,8 +18,6 @@ export default function setRockHeads(gameContainer, rockHeads) {
   rockHead.position.set(50, 27 + 100);
   rockHead.velocity = 4;
   rockHead.direction = 1;
-  rockHead.vx = 4;
-  rockHead.vy = 4;
   rockHead.start = { x: 50, y: 60 };
   rockHead.end = { x: 50, y: 283 };
   rockHead.animationSpeed = 0.3;
