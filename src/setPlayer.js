@@ -51,14 +51,6 @@ export default function setPlayer(gameContainer, sounds) {
   player.animationSpeed = 0.2;
   player.scale.x = -1;
   player.anchor.x = 1;
-  player.hasCollidedWith = function (object) {
-    return (
-      this.x < object.position.x + object.width &&
-      this.x + this.width > object.position.x &&
-      this.y < object.y + object.height &&
-      this.height + this.y > object.y
-    );
-  };
   player.play();
   player.onComplete = function () {
     if (this.appearing) this.position.set(510, 250);
