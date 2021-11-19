@@ -89,7 +89,10 @@ function gameLoop(delta) {
       player.position.y + tileSize * 2 + 1
     );
 
+  // Gravity
   player.vy = Math.min(12, player.vy + 1);
+
+  // Deceleration
   if (player.vx > 0) {
     player.vx -= 1;
   }
@@ -97,6 +100,7 @@ function gameLoop(delta) {
     player.vx += 1;
   }
 
+  // Player is falling
   if (player.vy > 0) {
     for (let i = 0; i < player.vy; i++) {
       const testX1 = player.position.x + 2;
@@ -114,6 +118,7 @@ function gameLoop(delta) {
     }
   }
 
+  // Player should jump
   if (player.vy < 0) {
     for (let i = player.vy; i < 0; i++) {
       const testX1 = player.position.x + 2;
@@ -133,6 +138,7 @@ function gameLoop(delta) {
     }
   }
 
+  // Player should move to the right
   if (player.vx > 0) {
     player.direction = 0;
     for (let i = 0; i < player.vx; i++) {
@@ -155,6 +161,7 @@ function gameLoop(delta) {
     }
   }
 
+  // Player should move to the left
   if (player.vx < 0) {
     player.direction = 1;
     for (let i = player.vx; i < 0; i++) {
@@ -177,6 +184,7 @@ function gameLoop(delta) {
     }
   }
 
+  // Keyboard manager
   if (kb.pressed.ArrowRight) {
     player.direction = 0;
     player.vx = Math.min(5, player.vx + 2);
@@ -264,6 +272,7 @@ function gameLoop(delta) {
     player.vy = 0;
   }
 
+  // Player animations
   if (!player.appearing && !player.invulnerable) {
     if (player.jumped) {
       if (
