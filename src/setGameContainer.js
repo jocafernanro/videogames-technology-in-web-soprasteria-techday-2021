@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 
 export default function setGameContainer(app, height, width) {
-  const gameContainer = new Container();
+  const gameContainer = new Container(); // PIXI.Container
   gameContainer.width = width;
   gameContainer.height = height;
   gameContainer.position.x = 0;
