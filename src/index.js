@@ -383,6 +383,6 @@ loader.onProgress.add(() => {
   console.log("on progress");
 });
 
-loader.onProgress.add(() => {
-  console.log("on progress");
+loader.onComplete.add(() => {
+  console.log("on completed");
 });
