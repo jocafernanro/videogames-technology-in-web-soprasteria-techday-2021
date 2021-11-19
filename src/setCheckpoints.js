@@ -4,17 +4,23 @@ import { AnimatedSprite, Loader } from "pixi.js";
 const { resources } = Loader.shared;
 
 export default function setCheckpoints(gameContainer, checkpoints, sounds) {
-  const popup = document.querySelector(".popup");
-  const openPopupEvent = new Event("openPopup");
+  const openPopupLearningEvent = new Event("openPopupLearning");
+  const openPopupWorkEvent = new Event("openPopupWork");
+  const popupLearning = document.querySelector("#popup-learning");
+  const popupWork = document.querySelector("#popup-work");
 
   const checkpointsConfiguration = [
     {
       x: 95,
       y: 240,
+      popup: popupLearning,
+      event: openPopupLearningEvent,
     },
     {
       x: 150,
       y: 16,
+      popup: popupWork,
+      event: openPopupWorkEvent,
     },
   ];
 
@@ -32,6 +38,11 @@ export default function setCheckpoints(gameContainer, checkpoints, sounds) {
     checkpoint.play();
 
     checkpoint.achieved = () => {
+      console.log(checkpointConfiguration.popup);
+      console.log(checkpointConfiguration.event);
+      checkpointConfiguration.popup.dispatchEvent(
+        checkpointConfiguration.event
+      );
       sounds.play("checkpoint_unlocked");
       checkpoint.completed = true;
       checkpoint.textures = resources.flag_out.spritesheet.animations.flag_out;
@@ -42,7 +53,7 @@ export default function setCheckpoints(gameContainer, checkpoints, sounds) {
           resources.flag_idle.spritesheet.animations.flag_idle;
         checkpoint.loop = true;
         checkpoint.play();
-        popup.dispatchEvent(openPopupEvent);
+        console.log(checkpoint);
       };
     };
 

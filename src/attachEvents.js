@@ -1,11 +1,23 @@
 export default function attachEvents() {
-  const popup = document.querySelector(".popup");
-  popup.addEventListener("openPopup", () => {
-    popup.style.visibility = "visible";
+  const popupLearning = document.querySelector("#popup-learning");
+  const popupWork = document.querySelector("#popup-work");
+  popupLearning.addEventListener("openPopupLearning", () => {
+    popupLearning.style.visibility = "visible";
+  });
+  popupWork.addEventListener("openPopupWork", () => {
+    popupWork.style.visibility = "visible";
   });
 
-  const closePopupButton = document.querySelector("#close-popup-button");
-  closePopupButton.addEventListener("click", () => {
-    popup.style.visibility = "hidden";
+  const closePopupLearningButton = document.querySelector(
+    "#close-popup-learning-button"
+  );
+  const closePopupWorkButton = document.querySelector(
+    "#close-popup-work-button"
+  );
+  closePopupLearningButton.addEventListener("click", () => {
+    popupLearning.style.visibility = "hidden";
+  });
+  closePopupWorkButton.addEventListener("click", () => {
+    popupWork.style.visibility = "hidden";
   });
 }
